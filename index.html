@@ -34,17 +34,17 @@
 
             <ul class="list-unstyled components">
                 <li>
-                    <a href="#home">
-                        <i class="fas fa-home"></i> Home
+                    <a href="#town">
+                        <i class="fas fa-home"></i> Town
                     </a>
                 </li>
             </ul>
-            <ul class="list-unstyled components">
+            <ul class="components">
                 <li class="active">
-                    <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle">
-                        <i class="fas fa-users"></i> Peeps
+                    <a href="#characterSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle">
+                        <i class="fas fa-users"></i> Characters
                     </a>
-                    <ul class="collapse show list-unstyled" id="homeSubmenu">
+                    <ul class="collapse show list-unstyled list-group-scroll" id="characterSubmenu">
                         <li class="animate-repeat" ng-repeat="character in data.characters">
                             <a href="#{{character.name}}-{{character.id}}"><i class="{{character.class.icon}}"></i> {{character.name}}({{character.level}})</a>
                         </li>
@@ -54,67 +54,66 @@
                     </ul>
                 </li>
             </ul>
-            <ul class="list-unstyled components">
-                <li>
-                    <a href="#contact">
-                        <i class="fas fa-paper-plane"></i> Contact
+            <ul class="components">
+                <li class="active">
+                    <a href="#dungeonSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle">
+                        <i class="fas fa-dungeon"></i> Dungeon
                     </a>
+                    <ul class="collapse show list-unstyled list-group-scroll" id="dungeonSubmenu">
+                        <li class="animate-repeat" ng-repeat="floor in [].constructor(data.dungeon.maxFloor) track by $index">
+                            <a>Floor {{$index + 1}}</a>
+                        </li>
+                        <li class="animate-repeat">
+                            <a ng-click="increaseMaxFloor();">Add Floor</a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
 
             <!-- To-Do: change this to a function to calculate thresholds based on CONSTANTS.Performance.tickRate -->
-            <div class="performance fixed-bottom" ng-class="{'performance-ok':performance.timePerTick < 25,
-            'performance-iffy':performance.timePerTick >= 25 && performance.timePerTick < 50,
-            'performance-yikes':performance.timePerTick >= 50}">
-                {{performance.timePerTick}}ms per tick
+            <div class="performance fixed-bottom">
+                <div ng-class="{'performance-ok':performance.timePerTick < 25,
+                'performance-iffy':performance.timePerTick >= 25 && performance.timePerTick < 50,
+                'performance-yikes':performance.timePerTick >= 50}">
+                    {{performance.timePerTick}}ms per tick
+                </div>
+                <div class="progress" style="height: 2px; width:200px;">
+                    <div id="#testid" class="progress-bar progress-bar-increasing" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1000" onsubmit="ngFire('test1')"></div>
+                </div>
             </div>
 
         </nav>
 
         <!-- Page Content  -->
-        <div id="content">
-
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <div class="container-fluid">
-                    <!--
-                    <h2>{{display.topNavTitle}}</h2>
-                        <button type="button" id="sidebarCollapse" class="btn btn-info">
-                            <i class="fas fa-bars"></i>
-                        </button>
-
-                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                            <ul class="nav navbar-nav ml-auto">
-                                <li class="nav-item active">
-                                    <a class="nav-link" href="#">Page</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Page</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Page</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Page</a>
-                                </li>
-                            </ul>
+        <div id="content" class="container-fluid">
+            <section id="town">
+                <img src="images/Town.png" />
+                <div class="d-inline-flex flex-column">
+                    <div class="dungeon-floor flex-column p-2" ng-repeat="floor in [].constructor(data.dungeon.maxFloor) track by $index">
+                        <div class="p-2">
+                            <h3>{{$index + 1}} {{CONSTANTS.dungeonFloors[$index].name}}</h3>
                         </div>
-                    -->
-                </div>
-            </nav>
+                        <div class="d-flex p-2">
+                            <div class="p-2 mr-auto">
+                                C
+                            </div>
+                            <div class="p-2" ng-repeat="enemy in data.dungeon.floors[$index] track by $index" ng-click="damageEnemy(this, 1);">
+                                {{enemy.name}}
 
-            <section id="home">
-                <h2>Home page!</h2>
-                <p>
-                    Does this work? I have no idea.
-                </p>
+                                <div class="progress" style="height: 2px;">
+                                    <div id="floor{{$parent.$index}}enemy{{$index}}" class="progress-bar health-bar" role="progressbar" aria-valuenow="{{enemy.currentHealth}}" aria-valuemin="0" aria-valuemax="{{enemy.health}}" onsubmit="ngFire('killEnemy',this)"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress" style="height: 2px;">
+                            <div id="floor{{$parent.$index}}enemy{{$index}}" class="progress-bar progress-bar-increasing" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="5000" onsubmit="ngFire('regenerateFloorEnemies',this)"></div>
+                        </div>
+                    </div>
+                </div>
             </section>
-            <section id="contact">
-                <h2>Contact</h2>
-                <p>
-                    contact?
-                </p>
-            </section>
-            <section ng-repeat="character in data.characters" id="{{character.name}}-{{character.id}}">
+
+            <section ng-repeat="character in data.characters track by $index" id="{{character.name}}-{{character.id}}">
                 <h2>{{character.name}}</h2>
                 <p>
                     Class: {{character.class.name}}
@@ -138,7 +137,7 @@
                         <div class="col-sm-10">
                             <select class="custom-select" id="createCharacterFormClass" required>
                                 <option invalid disabled selected value="">Choose...</option>
-                                <option ng-repeat="class in CONSTANTS.classes" value="{{class.index}}">{{class.name}}</option>                      
+                                <option ng-repeat="class in CONSTANTS.classes track by $index" value="{{$index}}">{{class.name}}</option>                      
                             </select>
                             <div class="invalid-feedback">
                                 Please select a class.

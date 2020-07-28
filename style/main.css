@@ -2,12 +2,37 @@
     DEMO STYLE
 */
 
+.wrapper {
+    user-select: none;
+}
+
+.dungeon-floor {
+    border: 1px solid;
+}
+
+.list-group-scroll {
+    max-height: 300px;
+    margin-bottom: 10px;
+    overflow-y: auto;
+}
+
+.no-transition {
+    -webkit-transition: none !important;
+    -ms-transition: none !important;
+    transition: none !important;
+}
+
+.progress-bar-transition {
+    -webkit-transition: width .1s ease !important;
+    -ms-transition: width .1s ease !important;
+    transition: width .1s ease !important;
+}
+
 section {
     display: none;
 }
 
-#home:target,
-#contact:target,
+#town:target,
 #create-character:target,
 #dummy:target {
     display: block;
