@@ -20,60 +20,70 @@ const CONSTANTS = {
         possibleEnemies: ["Mouse"],
         enemyProbabilities: [1],
         enemiesRequiredToPass: 10,
+        maxCharacters: 1,
     }, {
         name: "",
         theme: "undead",
         possibleEnemies: ["Rat"],
         enemyProbabilities: [1],
         enemiesRequiredToPass: 10,
+        maxCharacters: 1,
     }, {
         name: "",
         theme: "undead",
         possibleEnemies: ["Slime"],
         enemyProbabilities: [1],
         enemiesRequiredToPass: 10,
+        maxCharacters: 1,
     }, {
         name: "",
         theme: "undead",
         possibleEnemies: ["Mouse", "Rat"],
         enemyProbabilities: [1, 1],
         enemiesRequiredToPass: 10,
+        maxCharacters: 1,
     }, {
         name: "",
         theme: "undead",
         possibleEnemies: ["Mouse"],
         enemyProbabilities: [1],
         enemiesRequiredToPass: 1,
+        maxCharacters: 2,
     }, {
         name: "Caves",
         theme: "caves",
         possibleEnemies: ["Mouse", "Rat", "Slime"],
         enemyProbabilities: [1, 1, 1],
         enemiesRequiredToPass: 10,
+        maxCharacters: 1,
     }, {
         name: "",
         theme: "caves",
         possibleEnemies: ["Mouse", "Rat"],
         enemyProbabilities: [90, 1],
         enemiesRequiredToPass: 10,
+        maxCharacters: 1,
     }, {
         name: "",
         theme: "caves",
         possibleEnemies: ["Mouse"],
         enemyProbabilities: [1],
         enemiesRequiredToPass: 10,
+        maxCharacters: 1,
     }, {
         name: "",
         theme: "caves",
         possibleEnemies: ["Mouse"],
         enemyProbabilities: [1],
         enemiesRequiredToPass: 10,
+        maxCharacters: 1,
     }, {
         name: "",
         theme: "caves",
         possibleEnemies: ["Mouse"],
         enemyProbabilities: [1],
         enemiesRequiredToPass: 1,
+        maxCharacters: 1,
     }],
     enemyIndex: {
         Mouse: 0,
@@ -103,6 +113,6 @@ const CONSTANTS = {
         attackDamage: 4,
     }, ],
     performance: {
-        tickRate: 20,
+        tickDuration: 50,
     }
 };
