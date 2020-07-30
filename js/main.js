@@ -35,6 +35,8 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         if ($scope.data.dungeon.floors[0].characters.length == 0) {
             //add character
             $scope.data.dungeon.floors[0].characters.push(char);
+            //activate first enemy
+            $scope.data.dungeon.floors[0].enemies[0].isAttacking = true;
         }
 
     };
@@ -61,6 +63,14 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         }
     }
 
+    $scope.triggerEnemyAttack = function triggerEnemyAttack(enemy) {
+        var floorIndex = enemy.getAttribute('floor-index');
+        var enemyIndex = enemy.getAttribute('enemy-index');
+        var attackDamage = enemy.getAttribute('attack-damage');
+        console.log(floorIndex + '.' + enemyIndex + '-' + attackDamage);
+
+        $scope.data.dungeon.floors[floorIndex].characters[0].currentHealth -= attackDamage;
+    }
 
     //generate a list of enemies for each floor of the dungeon
     $scope.generateDungeonEnemies = function generateDungeonEnemies() {
@@ -85,10 +95,26 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         var generatedEnemies = [];
 
         for (i = 0; i < floor.enemiesRequiredToPass; i++) {
-            generatedEnemies.push(JSON.parse(JSON.stringify(enemyList[Math.floor(Math.random() * enemyList.length)]))
-
-            );
+            generatedEnemies.push(JSON.parse(JSON.stringify(enemyList[Math.floor(Math.random() * enemyList.length)])));
         }
+
+        //generate attacks
+        generatedEnemies.forEach(function(enemy, index) {
+            enemy.currentAttackIndex = 0;
+
+            var possibleAttacks = [];
+            enemy.attackProbabilities.forEach(function(a, index) {
+                for (ai = 0; ai < a; ai++) {
+                    possibleAttacks.push(index);
+                }
+            });
+
+            var randIndex = Math.floor(Math.random() * possibleAttacks.length);
+            enemy.currentAttackIndex = possibleAttacks[randIndex];
+
+            enemy.isAttacking = false;
+        });
+
 
         return generatedEnemies;
     };
@@ -113,20 +139,6 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         }
 
     };
-
-
-    $scope.applyDamage = function applyDamage(damageTo, damageAmt) {
-        if (damageTo.enemy) {
-            damageTo.enemy.currentHealth -= damageAmt;
-        } else if (damageTo.character) {
-            damageTo.character.currentHealth -= damageAmt;
-        } else {
-            debugger;
-        }
-
-
-    };
-
     $scope.attack = function attack(character) {
         var char = $scope.getCharacterById(character.getAttribute('character-id'));
         var floor = $scope.data.dungeon.floors[character.getAttribute('floor-index')];
@@ -147,6 +159,10 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         $scope.data.dungeon.floors[floorIndex].characters = $scope.data.dungeon.floors[floorIndex].characters.filter(c => {
             return char.id != c.id;
         });
+
+        //if floor has no characters, deactive and heal enemy
+        $scope.data.dungeon.floors[floorIndex].enemies[0].isAttacking = false;
+        $scope.data.dungeon.floors[floorIndex].enemies[0].currentHealth = $scope.data.dungeon.floors[floorIndex].enemies[0].health;
     };
 
     $scope.killEnemy = function killEnemy(enemy) {
@@ -155,8 +171,12 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
         $scope.data.dungeon.floors[floorIndex].enemies.splice(enemyIndex, 1);
 
-        //if no enemies left
-        if ($scope.checkIfFloorIsEmpty(floorIndex)) {
+
+        if ($scope.checkIfFloorIsEmpty(floorIndex) == false) {
+            //if enemies left
+            $scope.data.dungeon.floors[floorIndex].enemies[0].isAttacking = true;
+        } else {
+            //if no enemies left
             //add new floor if necessary
             if ($scope.data.dungeon.maxFloor == floorIndex + 1) {
                 $scope.data.dungeon.maxFloor++;
@@ -169,6 +189,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             //move characters up a floor
             $scope.data.dungeon.floors[floorIndex + 1].characters = $scope.data.dungeon.floors[floorIndex].characters;
             $scope.data.dungeon.floors[floorIndex].characters = [];
+            $scope.data.dungeon.floors[floorIndex].enemies[0].isAttacking = true;
 
             //start floor bar to regen mobs
             $('#floor' + floorIndex + 'bar')[0].classList.add('progress-bar-increasing');
@@ -198,32 +219,34 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
         //all progressBars with progress-bar-increasing will auto-increment
         Array.from(progressBars).forEach((element) => {
-            element.classList.remove("no-transition");
-            element.classList.add("progress-bar-transition");
+            //if not disabled
+            if (element.getAttribute('is-enabled') != 'false') {
+                element.classList.remove("no-transition");
+                element.classList.add("progress-bar-transition");
 
-            if (parseInt(element.ariaValueMax) <= 50) {
-                element.style.width = "100%";
-                element.classList.add("progress-bar-striped");
-                element.classList.add("progress-bar-animated");
+                if (parseInt(element.ariaValueMax) <= 50) {
+                    element.style.width = "100%";
+                    element.classList.add("progress-bar-striped");
+                    element.classList.add("progress-bar-animated");
 
-                element.onsubmit();
-                return;
+                    element.onsubmit();
+                    return;
+                }
+                if (parseInt(element.ariaValueNow) > parseInt(element.ariaValueMax)) {
+                    element.classList.add("no-transition");
+                    element.classList.remove("progress-bar-transition");
+                    element.ariaValueNow = 0;
+                    element.style.width = "0%";
+
+                    element.onsubmit();
+                    return;
+                }
+
+                element.ariaValueNow = parseInt(element.ariaValueNow) + toAdd;
+
+                var progress = parseInt(element.ariaValueNow) / parseInt(element.ariaValueMax);
+                element.style.width = progress * 100 + "%";
             }
-            if (parseInt(element.ariaValueNow) > parseInt(element.ariaValueMax)) {
-                element.classList.add("no-transition");
-                element.classList.remove("progress-bar-transition");
-                element.ariaValueNow = 0;
-                element.style.width = "0%";
-
-                element.onsubmit();
-                return;
-            }
-
-            element.ariaValueNow = parseInt(element.ariaValueNow) + toAdd;
-
-            var progress = parseInt(element.ariaValueNow) / parseInt(element.ariaValueMax);
-            element.style.width = progress * 100 + "%";
-
         });
 
         //all progressbars with health-bar will submit on empty
@@ -235,6 +258,29 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
             if (parseInt(element.ariaValueNow) <= 0) {
                 element.onsubmit();
+            }
+        });
+
+        //all attack bars will disable with no target
+        var attackBars = document.getElementsByClassName("attack-bar");
+
+        Array.from(attackBars).forEach((element) => {
+            var floorIndex = parseInt(element.getAttribute('floor-index'));
+            var enemyIndex = parseInt(element.getAttribute('enemy-index'));
+            var characterId = element.getAttribute('character-id');
+
+            if (enemyIndex >= 0) {
+                if (element.getAttribute('is-enabled') != 'false') {
+                    //check if no characters on floor
+                    if ($scope.data.dungeon.floors[floorIndex].characters.length == 0) {
+                        $scope.data.dungeon.floors[floorIndex].enemies[enemyIndex].isAttacking = false;
+                        element.ariaValueNow = 0;
+                    }
+                }
+            }
+
+            if (characterId) {
+                //To-do: disable when no enemies
             }
         });
 
