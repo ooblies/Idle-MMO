@@ -12,21 +12,31 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         name: 'Ooblies',
         class: CONSTANTS.classes.Warrior,
         id: 1,
-        experience: 0,
+        experience: 1,
         maxFloor: 1,
     });
     $scope.data.characters.push({
         name: 'Rohnjudes',
         class: CONSTANTS.classes.Mage,
         id: 2,
-        experience: 0,
+        experience: 1,
         maxFloor: 1,
     });
     $scope.data.sharedInventory = [];
 
-    $scope.calculateLevel = function(experience) {
-        return Math.floor(experience / 5) + 1;
+    $scope.getCharacterLevel = function(experience) {
+        for (l = 0; l < CONSTANTS.levels.length; l++) {
+            if (CONSTANTS.levels[l] <= experience && CONSTANTS.levels[l + 1] > experience) {
+                return l;
+            }
+        }
     };
+    $scope.getExperienceMin = function(experience) {
+        return CONSTANTS.levels[$scope.getCharacterLevel(experience)];
+    };
+    $scope.getExperienceMax = function(experience) {
+        return CONSTANTS.levels[$scope.getCharacterLevel(experience) + 1];
+    }
 
     $scope.popover = function() {
         $("[data-toggle=popover]").popover();
@@ -54,7 +64,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
     $scope.getCharacterMaxHealth = function(characterId) {
         var char = $scope.getCharacterById(characterId);
-        var level = $scope.calculateLevel(char.experience);
+        var level = $scope.getCharacterLevel(char.experience);
         return level * 10;
     };
 
@@ -148,7 +158,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     };
     $scope.attack = function attack(character) {
         var char = $scope.getCharacterById(character.getAttribute('character-id'));
-        var level = $scope.calculateLevel(char.experience);
+        var level = $scope.getCharacterLevel(char.experience);
         var floor = $scope.data.dungeon.floors[character.getAttribute('floor-index')];
         //first enemy
         var nextEnemy = floor.enemies[0];
@@ -168,12 +178,15 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             return char.id != c.id;
         });
 
-        //if floor has no characters, deactive and heal enemy
-        $scope.data.dungeon.floors[floorIndex].enemies[0].isAttacking = false;
-        $scope.data.dungeon.floors[floorIndex].enemies[0].currentHealth = $scope.data.dungeon.floors[floorIndex].enemies[0].health;
+        //if floor has no characters, reset enemies
+        if ($scope.data.dungeon.floors[floorIndex].characters.length == 0) {
+
+            //start floor bar to regen mobs
+            $('#floor' + floorIndex + 'bar')[0].classList.add('progress-bar-increasing');
+        }
     };
 
-    $scope.gainExperience = function levelUp(bar) {
+    $scope.gainLevel = function levelUp(bar) {
 
     }
 
@@ -221,33 +234,32 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         var item = $scope.getItemDrop(enemy);
         $scope.addItemToInventory(item);
 
-        if ($scope.checkIfFloorIsEmpty(floorIndex) == false) {
+        if ($scope.data.dungeon.floors[floorIndex].enemies.length > 0) {
             //if enemies left
             $scope.data.dungeon.floors[floorIndex].enemies[0].isAttacking = true;
         } else {
             //if no enemies left
-            //add new floor if necessary
-            if ($scope.data.dungeon.maxFloor == floorIndex + 1) {
-                $scope.data.dungeon.maxFloor++;
-
-                $scope.data.dungeon.floors.push({
-                    enemies: $scope.generateEnemiesByFloor(floorIndex + 1),
-                    characters: [],
-                });
+            //if characters
+            if ($scope.data.dungeon.floors[floorIndex].characters.length > 0) {
+                //add new floor if necessary
+                if ($scope.data.dungeon.maxFloor == floorIndex + 1) {
+                    $scope.data.dungeon.maxFloor++;
+                    
+                    $scope.data.dungeon.floors.push({
+                        enemies: $scope.generateEnemiesByFloor(floorIndex + 1),
+                        characters: [],
+                    });
+                }
+                //move characters up a floor
+                $scope.data.dungeon.floors[floorIndex + 1].characters = $scope.data.dungeon.floors[floorIndex].characters;
+                $scope.data.dungeon.floors[floorIndex].characters = [];
+                $scope.data.dungeon.floors[floorIndex + 1].enemies[0].isAttacking = true;
             }
-            //move characters up a floor
-            $scope.data.dungeon.floors[floorIndex + 1].characters = $scope.data.dungeon.floors[floorIndex].characters;
-            $scope.data.dungeon.floors[floorIndex].characters = [];
-            $scope.data.dungeon.floors[floorIndex].enemies[0].isAttacking = true;
 
             //start floor bar to regen mobs
-            $('#floor' + floorIndex + 'bar')[0].classList.add('progress-bar-increasing');
+            $('#floor'+floorIndex+'bar')[0].classList.add('progress-bar-increasing');
         }
     };
-
-    $scope.checkIfFloorIsEmpty = function checkIfFloorIsEmpty(floorIndex) {
-        return $scope.data.dungeon.floors[floorIndex].enemies.length <= 0;
-    }
 
     $scope.regenerateFloorEnemies = function regenerateFloorEnemies(floor) {
         var floorIndex = parseInt(floor.getAttribute('floor-index'));
@@ -322,8 +334,10 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
                 if (element.getAttribute('is-enabled') != 'false') {
                     //check if no characters on floor
                     if ($scope.data.dungeon.floors[floorIndex].characters.length == 0) {
-                        $scope.data.dungeon.floors[floorIndex].enemies[enemyIndex].isAttacking = false;
-                        element.ariaValueNow = 0;
+                        if ($scope.data.dungeon.floors[floorIndex].enemies[enemyIndex]) {
+                            $scope.data.dungeon.floors[floorIndex].enemies[enemyIndex].isAttacking = false;
+                            element.ariaValueNow = 0;
+                        }                        
                     }
                 }
             }
@@ -337,7 +351,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         var xpBars = document.getElementsByClassName("xp-bar");
 
         Array.from(xpBars).forEach((element) => {
-            var p = parseInt(element.ariaValueNow) / parseInt(element.ariaValueMax);
+            var p = (parseInt(element.ariaValueNow) - parseInt(element.ariaValueMin)) / parseInt(element.ariaValueMax);
             element.style.width = p * 100 + "%";
 
             if (element.ariaValueNow >= element.ariaValueMax) {
