@@ -34,6 +34,7 @@
                 <strong>IM</strong>
             </div>
 
+            <!-- Home -->
             <ul class="list-unstyled components">
                 <li>
                     <a href="#town" class="sidebar-sub-item">
@@ -41,6 +42,7 @@
                     </a>
                 </li>
             </ul>
+            <!-- Characters -->
             <ul class="components">
                 <li class="active">
                     <a href="#characterSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle sidebar-sub-item">
@@ -50,7 +52,7 @@
                         <li class="animate-repeat" ng-repeat="character in data.characters">
                             <div class="d-flex sidebar-sub-item">
                                 <div class="mr-auto p-2">
-                                    <i class="{{character.class.icon}}"></i> {{character.name}}({{character.level}}.{{character.experience}})
+                                    <i class="{{character.class.icon}}"></i> {{character.name}}({{calculateLevel(character.experience)}}.{{character.experience}})
                                 </div>
                                 <div class="p-2" style="cursor:pointer;">
                                     <i class="fas fa-fist-raised" ng-click="enterDungeon(character.id)"></i>
@@ -63,6 +65,7 @@
                     </ul>
                 </li>
             </ul>
+            <!-- Dungeon Floors -->
             <ul class="components">
                 <li class="active">
                     <a href="#dungeonSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle sidebar-sub-item">
@@ -71,6 +74,19 @@
                     <ul class="collapse show list-unstyled list-group-scroll" id="dungeonSubmenu">
                         <li class="animate-repeat" ng-repeat="floor in [].constructor(data.dungeon.maxFloor) track by $index">
                             <a class="sidebar-sub-item">Floor {{$index + 1}}</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <!-- Items -->
+            <ul class="components">
+                <li class="active">
+                    <a href="#inventorySubMenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle sidebar-sub-item">
+                        <i class="fas fa-archive"></i> Inventory
+                    </a>
+                    <ul class="collapse show list-unstyled list-group-scroll" id="inventorySubmenu">
+                        <li class="animate-repeat" ng-repeat="item in data.sharedInventory track by $index">
+                            <a class="sidebar-sub-item"><i class="{{item.icon}}"></i> {{item.name}} ({{item.count}})</a>
                         </li>
                     </ul>
                 </li>
@@ -111,12 +127,12 @@
                                 </div>
                                 <!-- Attack -->
                                 <div class=" progress" style="height: 2px; margin-top:2px;">
-                                    <div id="character{{character.id}}attack" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar progress-bar-increasing attack-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="1000" onsubmit="ngFire( 'attack',this)"></div>
+                                    <div id="character{{character.id}}attack" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar progress-bar-increasing attack-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="666" onsubmit="ngFire( 'attack',this)"></div>
                                 </div>
 
                                 <!-- Experience -->
                                 <div class=" progress" style="height: 2px; margin-top:2px;">
-                                    <div id="character{{character.id}}experience" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar xp-bar" role="progressbar" aria-valuenow="{{character.experience}}" aria-valuemin="0" aria-valuemax="5" onsubmit="ngFire( 'levelUp',this)"></div>
+                                    <div id="character{{character.id}}experience" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar xp-bar" role="progressbar" aria-valuenow="{{character.experience % 5}}" aria-valuemin="0" aria-valuemax="5" onsubmit="ngFire( 'gainExperience',this)"></div>
                                 </div>
                             </div>
                             <!-- SPACER -->
@@ -126,7 +142,6 @@
                             <!-- ENEMY -->
                             <div class="p-2" ng-repeat="enemy in data.dungeon.floors[$index].enemies track by $index" style="width:75px">
                                 {{enemy.name}}
-                                <button type="button" class="btn btn-lg btn-danger" ng-click="popover();" data-html="true" data-toggle="popover" title="{{enemy.name}}" data-content="Level : {{enemy.level}}<br/>{{enemy.currentHealth}}/{{enemy.health}}hp">?</button>
                                 <!-- HP -->
                                 <div class="progress health-bar-container" style="height: 2px;">
                                     <div id="floor{{$parent.$index}}enemy{{$index}}health" floor-index="{{$parent.$index}}" enemy-index="{{$index}}" enemy-name="{{enemy.name}}" class="progress-bar health-bar" role="progressbar" aria-valuenow="{{enemy.currentHealth}}" aria-valuemin="0" aria-valuemax="{{enemy.health}}"

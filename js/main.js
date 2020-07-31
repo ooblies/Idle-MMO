@@ -10,26 +10,28 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     //temp characters
     $scope.data.characters.push({
         name: 'Ooblies',
-        level: 1,
-        class: CONSTANTS.classes[CONSTANTS.classIndex.Warrior],
+        class: CONSTANTS.classes.Warrior,
         id: 1,
         experience: 0,
         maxFloor: 1,
     });
     $scope.data.characters.push({
         name: 'Rohnjudes',
-        level: 1,
-        class: CONSTANTS.classes[CONSTANTS.classIndex.Mage],
+        class: CONSTANTS.classes.Mage,
         id: 2,
         experience: 0,
         maxFloor: 1,
     });
+    $scope.data.sharedInventory = [];
+
+    $scope.calculateLevel = function(experience) {
+        return Math.floor(experience / 5) + 1;
+    };
 
     $scope.popover = function() {
         $("[data-toggle=popover]").popover();
     };
 
-    $scope.test = "1234";
     //Send a character to the first floor of the dungeon
     $scope.enterDungeon = function enterDungeon(characterId) {
         var char = $scope.getCharacterById(characterId);
@@ -51,7 +53,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     };
 
     $scope.getCharacterMaxHealth = function(characterId) {
-        return $scope.getCharacterById(characterId).level * 10;
+        var char = $scope.getCharacterById(characterId);
+        var level = $scope.calculateLevel(char.experience);
+        return level * 10;
     };
 
     $scope.getCharacterCurrentHealth = function(characterId) {
@@ -70,7 +74,6 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         var floorIndex = enemy.getAttribute('floor-index');
         var enemyIndex = enemy.getAttribute('enemy-index');
         var attackDamage = enemy.getAttribute('attack-damage');
-        console.log(floorIndex + '.' + enemyIndex + '-' + attackDamage);
 
         $scope.data.dungeon.floors[floorIndex].characters[0].currentHealth -= attackDamage;
     }
@@ -92,7 +95,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
         possibleEnemies.forEach(function(value, index) {
             for (i = 0; i < enemyProbabilities[index]; i++) {
-                enemyList.push(CONSTANTS.enemies[CONSTANTS.enemyIndex[value]])
+                enemyList.push(CONSTANTS.enemies[value.name]);
             };
         });
         var generatedEnemies = [];
@@ -132,9 +135,10 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
             $scope.data.characters.push({
                 name: newName,
-                level: 1,
                 class: newClass,
                 id: newId,
+                experience: 0,
+                maxFloor: 1,
             });
 
             $('#formCreateCharacter')[0].classList.remove('was-validated');
@@ -144,11 +148,12 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     };
     $scope.attack = function attack(character) {
         var char = $scope.getCharacterById(character.getAttribute('character-id'));
+        var level = $scope.calculateLevel(char.experience);
         var floor = $scope.data.dungeon.floors[character.getAttribute('floor-index')];
         //first enemy
         var nextEnemy = floor.enemies[0];
 
-        nextEnemy.currentHealth -= char.level;
+        nextEnemy.currentHealth -= level;
     };
 
     $scope.killCharacter = function killCharacter(character) {
@@ -168,16 +173,41 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         $scope.data.dungeon.floors[floorIndex].enemies[0].currentHealth = $scope.data.dungeon.floors[floorIndex].enemies[0].health;
     };
 
-    $scope.levelUp = function levelUp() {
+    $scope.gainExperience = function levelUp(bar) {
 
     }
+
+    $scope.getItemDrop = function getItemDrop(enemy) {
+        var possibleItems = enemy.items;
+        var itemProbabilities = enemy.itemProbabilities;
+        var itemList = [];
+
+        possibleItems.forEach(function(value, index) {
+            for (i = 0; i < itemProbabilities[index]; i++) {
+                itemList.push(value);
+            }
+        });
+
+        var item = itemList[Math.floor(Math.random() * itemList.length)];
+
+        return item;
+    }
+
+    $scope.addItemToInventory = function addItemToInventory(item) {
+        if ($scope.data.sharedInventory.filter(f => { return f.name == item.name }).length == 1) {
+            $scope.data.sharedInventory.filter(f => { return f.name == item.name })[0].count++;
+        } else {
+            item.count = 1;
+            $scope.data.sharedInventory.push(item);
+        }
+    };
 
     $scope.killEnemy = function killEnemy(enemy) {
         var floorIndex = parseInt(enemy.getAttribute('floor-index'));
         var enemyIndex = parseInt(enemy.getAttribute('enemy-index'));
         var enemyName = enemy.getAttribute('enemy-name');
 
-        var enemy = CONSTANTS.enemies[CONSTANTS.enemyIndex[enemyName]];
+        var enemy = CONSTANTS.enemies[enemyName];
 
         $scope.data.dungeon.floors[floorIndex].enemies.splice(enemyIndex, 1);
 
@@ -186,6 +216,10 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             //here
             c.experience += enemy.level;
         });
+
+        //give item to first character
+        var item = $scope.getItemDrop(enemy);
+        $scope.addItemToInventory(item);
 
         if ($scope.checkIfFloorIsEmpty(floorIndex) == false) {
             //if enemies left
