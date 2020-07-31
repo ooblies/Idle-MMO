@@ -126,7 +126,7 @@
                             <!-- ENEMY -->
                             <div class="p-2" ng-repeat="enemy in data.dungeon.floors[$index].enemies track by $index" style="width:75px">
                                 {{enemy.name}}
-                                <button type="button" class="btn btn-lg btn-danger" ng-click="popover();" data-toggle="popover" title="Popover title" data-content="{{enemy.name}} - Level : {{enemy.level}}">?</button>
+                                <button type="button" class="btn btn-lg btn-danger" ng-click="popover();" data-html="true" data-toggle="popover" title="{{enemy.name}}" data-content="Level : {{enemy.level}}<br/>{{enemy.currentHealth}}/{{enemy.health}}hp">?</button>
                                 <!-- HP -->
                                 <div class="progress health-bar-container" style="height: 2px;">
                                     <div id="floor{{$parent.$index}}enemy{{$index}}health" floor-index="{{$parent.$index}}" enemy-index="{{$index}}" enemy-name="{{enemy.name}}" class="progress-bar health-bar" role="progressbar" aria-valuenow="{{enemy.currentHealth}}" aria-valuemin="0" aria-valuemax="{{enemy.health}}"
