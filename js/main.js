@@ -4,6 +4,8 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     $scope.performance = {};
     $scope.data = {};
 
+    $scope.test = "1235";
+
     $scope.CONSTANTS = CONSTANTS;
     $scope.createCharacter = {};
     $scope.data.characters = [];
@@ -12,7 +14,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     //temp characters
     $scope.data.characters.push({
         name: 'Ooblies',
-        level: 10,
+        level: 1,
         class: CONSTANTS.classes[CONSTANTS.classIndex.Warrior],
         id: 1,
         experience: 0,
@@ -27,6 +29,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         maxFloor: 1,
     });
 
+    $scope.test = "1234";
     //Send a character to the first floor of the dungeon
     $scope.enterDungeon = function enterDungeon(characterId) {
         var char = $scope.getCharacterById(characterId);
@@ -165,12 +168,24 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         $scope.data.dungeon.floors[floorIndex].enemies[0].currentHealth = $scope.data.dungeon.floors[floorIndex].enemies[0].health;
     };
 
+    $scope.levelUp = function levelUp() {
+
+    }
+
     $scope.killEnemy = function killEnemy(enemy) {
         var floorIndex = parseInt(enemy.getAttribute('floor-index'));
         var enemyIndex = parseInt(enemy.getAttribute('enemy-index'));
+        var enemyName = enemy.getAttribute('enemy-name');
+
+        var enemy = CONSTANTS.enemies[CONSTANTS.enemyIndex[enemyName]];
 
         $scope.data.dungeon.floors[floorIndex].enemies.splice(enemyIndex, 1);
 
+        //give enemy.level xp to all characters
+        $scope.data.dungeon.floors[floorIndex].characters.forEach(c => {
+            //here
+            c.experience += enemy.level;
+        });
 
         if ($scope.checkIfFloorIsEmpty(floorIndex) == false) {
             //if enemies left
@@ -288,7 +303,12 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         var xpBars = document.getElementsByClassName("xp-bar");
 
         Array.from(xpBars).forEach((element) => {
+            var p = parseInt(element.ariaValueNow) / parseInt(element.ariaValueMax);
+            element.style.width = p * 100 + "%";
 
+            if (element.ariaValueNow >= element.ariaValueMax) {
+                element.onsubmit();
+            }
         });
 
         var stop = window.performance.now();

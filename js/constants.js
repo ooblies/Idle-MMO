@@ -20,7 +20,7 @@ const CONSTANTS = {
         possibleEnemies: ["Mouse"],
         enemyProbabilities: [1],
         enemiesRequiredToPass: 10,
-        maxCharacters: 1,
+        maxCharacters: 2,
     }, {
         name: "",
         theme: "undead",
@@ -98,7 +98,7 @@ const CONSTANTS = {
         attacks: ["Bite", "Chomp"],
         attackProbabilities: [4, 1],
         attackDamages: [1, 3],
-        attackSpeeds: [1000, 500]
+        attackSpeeds: [1000, 500],
     }, {
         name: "Rat",
         level: 2,

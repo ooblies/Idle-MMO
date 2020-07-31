@@ -2,6 +2,10 @@
     DEMO STYLE
 */
 
+.xp-bar {
+    background-color: yellow !important;
+}
+
 .health-bar {
     background-color: green !important;
 }
