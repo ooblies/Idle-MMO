@@ -3,10 +3,6 @@ var idleApp = angular.module('idleApp', []);
 idleApp.controller('idleController', function idleController($scope, $timeout, $interval) {
     $scope.performance = {};
     $scope.data = {};
-
-    $scope.test = "1235";
-
-    $scope.CONSTANTS = CONSTANTS;
     $scope.createCharacter = {};
     $scope.data.characters = [];
     $scope.data.dungeon = {};
@@ -28,6 +24,10 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         experience: 0,
         maxFloor: 1,
     });
+
+    $scope.popover = function() {
+        $("[data-toggle=popover]").popover();
+    };
 
     $scope.test = "1234";
     //Send a character to the first floor of the dungeon

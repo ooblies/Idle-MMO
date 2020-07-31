@@ -53,7 +53,7 @@ const CONSTANTS = {
         name: "Caves",
         theme: "caves",
         possibleEnemies: ["Mouse", "Rat", "Slime"],
-        enemyProbabilities: [1, 1, 1],
+        enemyProbabilities: [1, 2, 1],
         enemiesRequiredToPass: 10,
         maxCharacters: 1,
     }, {
@@ -89,6 +89,7 @@ const CONSTANTS = {
         Mouse: 0,
         Rat: 1,
         Slime: 2,
+        Balrog: 3,
     },
     enemies: [{
         name: "Mouse",
@@ -117,6 +118,15 @@ const CONSTANTS = {
         attackProbabilities: [1],
         attackDamages: [5],
         attackSpeeds: [2000]
+    }, {
+        name: "Balrog",
+        level: 72,
+        health: 896,
+        currentHealth: 896,
+        attacks: ["poop"],
+        attackProbabilities: [1],
+        attackDamages: [1],
+        attackSpeeds: [10]
     }, ],
     performance: {
         tickDuration: 50,
