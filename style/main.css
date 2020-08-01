@@ -40,16 +40,6 @@
     transition: width .1s ease !important;
 }
 
-section {
-    display: none;
-}
-
-#town:target,
-#create-character:target,
-#dummy:target {
-    display: block;
-}
-
 .performance {
     margin: 20px;
 }

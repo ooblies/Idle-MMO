@@ -2,27 +2,61 @@ var idleApp = angular.module('idleApp', []);
 
 idleApp.controller('idleController', function idleController($scope, $timeout, $interval) {
     $scope.performance = {};
+    $scope.performance.timeSinceSave = 0;
     $scope.data = {};
-    $scope.createCharacter = {};
-    $scope.data.characters = [];
-    $scope.data.dungeon = {};
-    $scope.data.dungeon.floors = [];
-    //temp characters
-    $scope.data.characters.push({
-        name: 'Ooblies',
-        class: CONSTANTS.classes.Warrior,
-        id: 1,
-        experience: 1,
-        maxFloor: 1,
-    });
-    $scope.data.characters.push({
-        name: 'Rohnjudes',
-        class: CONSTANTS.classes.Mage,
-        id: 2,
-        experience: 1,
-        maxFloor: 1,
-    });
-    $scope.data.sharedInventory = [];
+    $scope.createCharacter = {};    
+
+    $scope.saveGame = function saveGame() {
+        var saveString = JSON.stringify($scope.data);
+        localStorage.setItem('idleMMOSave',saveString);
+    };
+    $scope.loadGame = function loadGame() {
+        var saveString = localStorage.getItem("idleMMOSave");
+        if (saveString) {
+            var saveObject = JSON.parse(saveString);
+            $scope.data = saveObject;
+        } else {
+            $scope.startNewGame();
+        }        
+    };
+    $scope.deleteSave = function deleteSave() {
+        localStorage.removeItem('idleMMOSave');
+        $scope.startNewGame();
+    }
+    $scope.startNewGame = function startNewGame() {
+        $scope.data = {};
+        $scope.data.gold = 0;
+        $scope.data.characters = [];
+        $scope.data.dungeon = {};
+        $scope.data.dungeon.floors = [];
+        //temp characters
+        $scope.data.characters.push({
+            name: 'Ooblies',
+            class: CONSTANTS.classes.Warrior,
+            id: 1,
+            experience: 1,
+            maxFloor: 1,
+        });
+        $scope.data.characters.push({
+            name: 'Rohnjudes',
+            class: CONSTANTS.classes.Mage,
+            id: 2,
+            experience: 1,
+            maxFloor: 1,
+        });
+        $scope.data.sharedInventory = [];
+        
+        $scope.data.dungeon.maxFloor = 1;
+        $scope.data.dungeon.maxFloor = $scope.data.characters.reduce(function(prev, current) {
+            return (prev.maxFloor > current.maxFloor) ? prev : current
+        }).maxFloor;
+    
+        $scope.generateDungeonEnemies();
+        //create character spots
+        $scope.data.dungeon.floors.forEach(f => {
+            f.characters = [];
+        });
+    };
 
     $scope.getCharacterLevel = function(experience) {
         for (l = 0; l < CONSTANTS.levels.length; l++) {
@@ -86,6 +120,18 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         var attackDamage = enemy.getAttribute('attack-damage');
 
         $scope.data.dungeon.floors[floorIndex].characters[0].currentHealth -= attackDamage;
+
+        var enemyObject = $scope.data.dungeon.floors[floorIndex].enemies[enemyIndex];
+
+        var possibleAttacks = [];
+        enemyObject.attackProbabilities.forEach(function(a, index) {
+            for (ai = 0; ai < a; ai++) {
+                possibleAttacks.push(index);
+            }
+        });
+
+        var randIndex = Math.floor(Math.random() * possibleAttacks.length);
+        enemyObject.currentAttackIndex = possibleAttacks[randIndex];
     }
 
     //generate a list of enemies for each floor of the dungeon
@@ -186,31 +232,30 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         }
     };
 
-    $scope.gainLevel = function levelUp(bar) {
 
-    }
+    $scope.lootItemsFromEnemy = function lootItemsFromEnemy(enemy) {
+        
+        enemy.lootTable.forEach(i => {
+            var rand = Math.floor(Math.random() * 100) + 1; //random from 1-100
 
-    $scope.getItemDrop = function getItemDrop(enemy) {
-        var possibleItems = enemy.items;
-        var itemProbabilities = enemy.itemProbabilities;
-        var itemList = [];
-
-        possibleItems.forEach(function(value, index) {
-            for (i = 0; i < itemProbabilities[index]; i++) {
-                itemList.push(value);
+            if (i.chance > rand) {
+                var randQ = Math.floor(Math.random() * (i.quantityMax - i.quantityMin + 1)) + i.quantityMin;
+                $scope.addItemToInventory(i.item, randQ);
             }
-        });
+        });        
+    };
 
-        var item = itemList[Math.floor(Math.random() * itemList.length)];
+    $scope.lootGoldFromEnemy = function lootGoldFromEnemy(enemy) {
+        var randG = Math.floor(Math.random() * (enemy.goldDroppedMax - enemy.goldDroppedMin + 1)) + enemy.goldDroppedMin;
+        $scope.data.gold += randG;
+        
+    };
 
-        return item;
-    }
-
-    $scope.addItemToInventory = function addItemToInventory(item) {
+    $scope.addItemToInventory = function addItemToInventory(item, quantity) {
         if ($scope.data.sharedInventory.filter(f => { return f.name == item.name }).length == 1) {
-            $scope.data.sharedInventory.filter(f => { return f.name == item.name })[0].count++;
+            $scope.data.sharedInventory.filter(f => { return f.name == item.name })[0].count += quantity;
         } else {
-            item.count = 1;
+            item.count = quantity;
             $scope.data.sharedInventory.push(item);
         }
     };
@@ -231,8 +276,8 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         });
 
         //give item to first character
-        var item = $scope.getItemDrop(enemy);
-        $scope.addItemToInventory(item);
+        $scope.lootItemsFromEnemy(enemy);
+        $scope.lootGoldFromEnemy(enemy);
 
         if ($scope.data.dungeon.floors[floorIndex].enemies.length > 0) {
             //if enemies left
@@ -270,6 +315,11 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
     $scope.tick = function tick() {
         //run 20/s - all progress bars are updated here
+        $scope.performance.timeSinceSave += CONSTANTS.performance.tickDuration;
+        if ($scope.performance.timeSinceSave > 5000) {
+            $scope.saveGame();
+            $scope.performance.timeSinceSave = 0;
+        }
 
         var start = window.performance.now();
         //code goes here
@@ -290,7 +340,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
                     element.classList.add("progress-bar-striped");
                     element.classList.add("progress-bar-animated");
 
-                    element.onsubmit();
+                    if (element.onsubmit) {
+                        element.onsubmit();
+                    }   
                     return;
                 }
                 if (parseInt(element.ariaValueNow) > parseInt(element.ariaValueMax)) {
@@ -299,7 +351,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
                     element.ariaValueNow = 0;
                     element.style.width = "0%";
 
-                    element.onsubmit();
+                    if (element.onsubmit) {
+                        element.onsubmit();
+                    }   
                     return;
                 }
 
@@ -318,7 +372,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             element.style.width = p * 100 + "%";
 
             if (parseInt(element.ariaValueNow) <= 0) {
-                element.onsubmit();
+                if (element.onsubmit) {
+                    element.onsubmit();
+                }   
             }
         });
 
@@ -355,7 +411,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             element.style.width = p * 100 + "%";
 
             if (element.ariaValueNow >= element.ariaValueMax) {
-                element.onsubmit();
+                if (element.onsubmit) {
+                    element.onsubmit();
+                }                
             }
         });
 
@@ -365,16 +423,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
     //setup for initial load
     $interval($scope.tick, CONSTANTS.performance.tickDuration);
-
-    $scope.data.dungeon.maxFloor = $scope.data.characters.reduce(function(prev, current) {
-        return (prev.maxFloor > current.maxFloor) ? prev : current
-    }).maxFloor;
-
-    $scope.generateDungeonEnemies();
-    //create character spots
-    $scope.data.dungeon.floors.forEach(f => {
-        f.characters = [];
-    });
+    $scope.loadGame();
 });
 
 (function() {

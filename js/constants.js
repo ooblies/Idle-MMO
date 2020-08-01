@@ -17,14 +17,17 @@ CONSTANTS.classes = {
     Warrior: {
         name: "Warrior",
         icon: "ra ra-sword",
+        attackSpeed: 2000,
     },
     Mage: {
         name: "Mage",
         icon: "ra ra-crystal-wand",
+        attackSpeed: 1500,
     },
     Cleric: {
         name: "Cleric",
         icon: "fas fa-cross",
+        attackSpeed: 1000,
     }
 };
 
@@ -56,8 +59,21 @@ CONSTANTS.enemies = {
         attackProbabilities: [4, 1],
         attackDamages: [1, 3],
         attackSpeeds: [1000, 500],
-        items: [CONSTANTS.items.Whisker, CONSTANTS.items.Tooth],
-        itemProbabilities: [3, 1],
+        goldDroppedMin: 1,
+        goldDroppedMax: 1,
+        lootTable: [
+            {
+                item: CONSTANTS.items.Whisker,
+                chance: 90, // %
+                quantityMin: 1,
+                quantityMax: 2,
+            }, {
+                item: CONSTANTS.items.Tooth,
+                chance: 10, // %
+                quantityMin: 1,
+                quantityMax: 1,
+            }
+        ], 
     },
     Rat: {
         name: "Rat",
@@ -68,8 +84,21 @@ CONSTANTS.enemies = {
         attackProbabilities: [4, 1],
         attackDamages: [1, 3],
         attackSpeeds: [1000, 500],
-        items: [CONSTANTS.items.Whisker, CONSTANTS.items.Tooth],
-        itemProbabilities: [1, 2],
+        goldDroppedMin: 0,
+        goldDroppedMax: 0,
+        lootTable: [
+            {
+                item: CONSTANTS.items.Whisker,
+                chance: 90, // %
+                quantityMin: 1,
+                quantityMax: 4,
+            }, {
+                item: CONSTANTS.items.Tooth,
+                chance: 50, // %
+                quantityMin: 1,
+                quantityMax: 1,
+            }
+        ],        
     },
     Slime: {
         name: "Slime",
@@ -80,8 +109,30 @@ CONSTANTS.enemies = {
         attackProbabilities: [1],
         attackDamages: [5],
         attackSpeeds: [2000],
-        items: [CONSTANTS.items.Gel],
-        itemProbabilities: [1],
+        goldDroppedMin: 0,
+        goldDroppedMax: 5,
+        lootTable: [
+            {
+                item: CONSTANTS.items.Gel,
+                chance: 100, // %
+                quantityMin: 1,
+                quantityMax: 2,
+            }
+        ],     
+    },
+    Cryptlord: {        
+        name: "Crypt Lord",
+        level: 5,
+        health: 50,
+        currentHealth: 50,
+        attacks: ["Attack"],
+        attackProbabilities: [1],
+        attackDamages: [10],
+        attackSpeeds: [2000],
+        goldDroppedMin: 10,
+        goldDroppedMax: 20,
+        lootTable: [
+        ],     
     },
     Balrog: {
         name: "Balrog",
@@ -92,8 +143,10 @@ CONSTANTS.enemies = {
         attackProbabilities: [1],
         attackDamages: [1],
         attackSpeeds: [10],
-        itemIndexes: [],
-        itemProbabilities: [],
+        goldDroppedMin: 0,
+        goldDroppedMax: 0,
+        lootTable: [
+        ],     
     }
 };
 

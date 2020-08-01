@@ -37,9 +37,26 @@
             <!-- Home -->
             <ul class="list-unstyled components">
                 <li>
-                    <a href="#town" class="sidebar-sub-item">
+                    <a href="#townSubmenu" class="sidebar-sub-item">
                         <i class="fas fa-home"></i> Town
                     </a>
+                    <ul class="collapse show list-unstyled list-group-scroll" id="townSubmenu">
+                        <li class="animate-repeat">
+                            <div class="sidebar-sub-item">                                
+                                <a href="" ng-click="saveGame()">Save Game</a>
+                            </div>
+                        </li>                        
+                        <li class="animate-repeat">
+                            <div class="sidebar-sub-item">                                
+                                <a href="" ng-click="loadGame()">Load Game</a>
+                            </div>
+                        </li>                        
+                        <li class="animate-repeat">
+                            <div class="sidebar-sub-item">                                
+                                <a href="" ng-click="deleteSave()">Delete Save</a>
+                            </div>
+                        </li>
+                    </ul>
                 </li>
             </ul>
             <!-- Characters -->
@@ -82,7 +99,7 @@
             <ul class="components">
                 <li class="active">
                     <a href="#inventorySubMenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle sidebar-sub-item">
-                        <i class="fas fa-archive"></i> Inventory
+                        <i class="fas fa-archive"></i> Inventory ({{data.gold}}g)
                     </a>
                     <ul class="collapse show list-unstyled list-group-scroll" id="inventorySubmenu">
                         <li class="animate-repeat" ng-repeat="item in data.sharedInventory track by $index">
@@ -127,7 +144,7 @@
                                 </div>
                                 <!-- Attack -->
                                 <div class=" progress" style="height: 2px; margin-top:2px;">
-                                    <div id="character{{character.id}}attack" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar progress-bar-increasing attack-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="666" onsubmit="ngFire( 'attack',this)"></div>
+                                    <div id="character{{character.id}}attack" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar progress-bar-increasing attack-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{character.class.attackSpeed}}" onsubmit="ngFire( 'attack',this)"></div>
                                 </div>
 
                                 <!-- Experience -->
@@ -164,7 +181,7 @@
                     </div>
                 </div>
             </section>
-            <section id="create-character">
+            <section id="create-character" style="display:none;">
                 <h2>Create Character</h2>
                 <form id="formCreateCharacter" class="needs-validation" novalidate ng-submit="createCharacter()">
                     <div class="form-group row">
