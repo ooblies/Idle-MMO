@@ -66,9 +66,9 @@
                         <i class="fas fa-users"></i> Characters
                     </a>
                     <ul class="collapse show list-unstyled list-group-scroll" id="characterSubmenu">
-                        <li class="animate-repeat" ng-repeat="character in data.characters">
-                            <div class="d-flex sidebar-sub-item">
-                                <div class="mr-auto p-2">
+                        <li class="animate-repeat" ng-repeat="character in data.characters">                                                        
+                            <div class="d-flex sidebar-sub-item" >
+                                <div class="mr-auto p-2 clickable" data-toggle="modal" data-target="#characterModal" data-character-id="{{character.id}}">
                                     <i class="{{character.class.icon}}"></i> {{character.name}}({{getCharacterLevel(character.experience)}}) ({{getExperienceMin(character.experience)}}|{{character.experience}}|{{getExperienceMax(character.experience)}})
                                 </div>
                                 <div class="p-2" style="cursor:pointer;">
@@ -223,6 +223,71 @@
             });
         });
     </script>
+
+
+<!-- MODAL -->
+<div class="modal fade" id="characterModal" tabindex="-1" role="dialog" aria-labelledby="characterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="characterModalLabel">Character</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-sm-6">        
+                    <img src="images/characterEquipment.png" />
+                </div>
+                <div class="col-sm-6">
+                    <img src="images/characterAbilities.png" />
+                </div>
+            </div>
+          <dl class="row">
+            <dt class="col-sm-3">
+                Class
+            </dt>
+            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                <label id="lblCharacterModalClass"></label>
+            </dd>
+            <dt class="col-sm-3">
+                Health
+            </dt>
+            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                <label id="lblCharacterModalHealth"></label>
+            </dd>
+            <dt class="col-sm-3">
+                Level
+            </dt>
+            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                <label id="lblCharacterModalLevel"></label>
+            </dd>
+            <dt class="col-sm-3">
+                Attack Speed
+            </dt>
+            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                <label id="lblCharacterModalAttackSpeed"></label>
+            </dd>
+            <dt class="col-sm-3">
+                Max Floor
+            </dt>
+            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                <label id="lblCharacterModalMaxFloor"></label>
+            </dd>
+            <dt class="col-sm-3">
+                Attack Damage
+            </dt>
+            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                <label id="lblCharacterModalAttackDamage"></label>
+            </dd>
+          </dl>
+        </div>
+        <div class="modal-footer">
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

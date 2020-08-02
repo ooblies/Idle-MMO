@@ -2,6 +2,10 @@
     DEMO STYLE
 */
 
+.clickable {
+    cursor: pointer;
+}
+
 .xp-bar {
     background-color: #ffc107 !important;
 }

@@ -58,6 +58,11 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         });
     };
 
+    $scope.getCharacterLevelById = function getCharacterLevelById(charId) {
+        var char = $scope.getCharacterById(charId);
+        return $scope.getCharacterLevel(char.experience);
+    };
+
     $scope.getCharacterLevel = function(experience) {
         for (l = 0; l < CONSTANTS.levels.length; l++) {
             if (CONSTANTS.levels[l] <= experience && CONSTANTS.levels[l + 1] > experience) {
@@ -104,13 +109,11 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
     $scope.getCharacterCurrentHealth = function(characterId) {
         var char = $scope.getCharacterById(characterId);
-
+        
         if (char.currentHealth >= 0) {
             return char.currentHealth
         } else {
-            var max = $scope.getCharacterMaxHealth(characterId);
-            char.currentHealth = max;
-            return char.currentHealth;
+            return 0;
         }
     }
 
@@ -420,6 +423,21 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         var stop = window.performance.now();
         $scope.performance.timePerTick = (stop - start).toFixed(0);
     };
+    
+    $('#characterModal').on('show.bs.modal', function (event) {
+        var triggeredBy = $(event.relatedTarget);
+        var charId = triggeredBy.data('character-id');
+        var char = $scope.getCharacterById(charId);
+
+        var modal = $(this);
+        modal.find('.modal-title').text(char.name);
+        modal.find('#lblCharacterModalClass')[0].innerText = char.class.name;
+        modal.find('#lblCharacterModalHealth')[0].innerText = $scope.getCharacterMaxHealth(charId);
+        modal.find('#lblCharacterModalLevel')[0].innerText = $scope.getCharacterLevelById(charId);
+        modal.find('#lblCharacterModalAttackSpeed')[0].innerText = char.class.attackSpeed;
+        modal.find('#lblCharacterModalMaxFloor')[0].innerText = char.maxFloor;
+        modal.find('#lblCharacterModalAttackDamage')[0].innerText = $scope.getCharacterLevelById(charId);;
+    })
 
     //setup for initial load
     $interval($scope.tick, CONSTANTS.performance.tickDuration);
@@ -443,6 +461,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         });
     }, false);
 })();
+
 
 //call scoped function from outside scope.
 function ngFire(fName, p1, p2) {
