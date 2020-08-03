@@ -156,7 +156,7 @@
                                 <!-- Experience -->
                                 <div class=" progress" style="height: 2px; margin-top:2px;">
                                     <div id="character{{character.id}}experience" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar xp-bar" role="progressbar" aria-valuenow="{{character.experience}}" aria-valuemin="{{getExperienceMin(character.experience)}}"
-                                        aria-valuemax="{{getExperienceMax(character.experience)}}" onsubmit="ngFire( 'gainLevel',this)"></div>
+                                        aria-valuemax="{{getExperienceMax(character.experience)}}" onsubmit="ngFire( 'levelUp',this)"></div>
                                 </div>
                             </div>
                             <!-- SPACER -->

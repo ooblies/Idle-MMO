@@ -48,9 +48,36 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     };
 
     //STATS
+    $scope.getEffectiveStat = function getEffectiveStat(stat, charId) {
+        var char = $scope.getCharacterById(charId);
+        var level = $scope.getCharacterLevel(char.experience);
+        
+        var effectiveStat = 0;
+
+        switch (stat) {
+            case Stats.Strength:
+                effectiveStat = char.class.startingStr + (level * char.class.increasePerLevelStr);
+                break;
+            case Stats.Agility:
+                effectiveStat = char.class.startingAgi + (level * char.class.increasePerLevelAgi);
+                break;
+            case Stats.Intelligence:
+                effectiveStat = char.class.startingInt + (level * char.class.increasePerLevelInt);
+                break;
+            case Stats.Constitution:
+                effectiveStat = char.class.startingCon + (level * char.class.increasePerLevelCon);
+                break;
+            default:                
+        }
+
+        return effectiveStat;
+    }
+
     $scope.getEffectiveAttackSpeed = function getEffectiveAttackSpeed(charId) {
         var char = $scope.getCharacterById(charId);
-        var effectiveMultiplier = 1 - (char.agility/200);
+        var effectiveAgility = $scope.getEffectiveStat(Stats.Agility, charId);
+
+        var effectiveMultiplier = 1 - (effectiveAgility/200);
         var effectiveSpeed = char.class.attackSpeed * effectiveMultiplier;
         //to-do: add weapon speed
 
@@ -59,22 +86,25 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
     $scope.getEffectiveAttackDamage = function getEffectiveAttackDamage(charId) {
         var char = $scope.getCharacterById(charId);
+        var effectiveStrength = $scope.getEffectiveStat(Stats.Strength, charId);
         //to-do: add weapon damage
 
-        return char.strength * 2;
+        return effectiveStrength * 2;
 
     }
 
     $scope.getEffectiveMaxHealth = function getEffectiveMaxHealth(charId) {
         var char = $scope.getCharacterById(charId);
+        var effectiveConstitution = $scope.getEffectiveStat(Stats.Constitution, charId);
         
-        return char.constitution * 10;
+        return effectiveConstitution * 10;
     }
 
     $scope.getEffectiveAbilityMultiplier = function getEffectiveAbilityMultiplier(charId) {
         var char = $scope.getCharacterById(charId);
+        var effectiveIntelligence = $scope.getEffectiveStat(Stats.Intelligence, charId);
         
-        return 1 + (char.intelligence/200);
+        return 1 + (effectiveIntelligence/200);
     }
 
     $scope.getCharacterLevelById = function getCharacterLevelById(charId) {
@@ -193,6 +223,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         return generatedEnemies;
     };
 
+
     $scope.createCharacterObject = function createCharacterObject(id, name, newClass) {
         char = {
             name: name,
@@ -229,13 +260,14 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
     };
     $scope.attack = function attack(character) {
-        var char = $scope.getCharacterById(character.getAttribute('character-id'));
-        var level = $scope.getCharacterLevel(char.experience);
+        var char = $scope.getCharacterById(character.getAttribute('character-id'));        
         var floor = $scope.data.dungeon.floors[character.getAttribute('floor-index')];
+
+        var effectiveDamage = $scope.getEffectiveAttackDamage(char.id);
         //first enemy
         var nextEnemy = floor.enemies[0];
 
-        nextEnemy.currentHealth -= level;
+        nextEnemy.currentHealth -= effectiveDamage;
     };
 
     $scope.killCharacter = function killCharacter(character) {
