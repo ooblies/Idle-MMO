@@ -1,5 +1,6 @@
 const CONSTANTS = {};
 
+
 CONSTANTS.levels = [0 //0
     , 1, 8, 17, 28, 39, 51, 65, 80, 97, 115 //1-10
     , 136, 158, 183, 211, 241, 275, 312, 352, 397, 447 //11-20
@@ -18,16 +19,47 @@ CONSTANTS.classes = {
         name: "Warrior",
         icon: "ra ra-sword",
         attackSpeed: 2000,
+        abilities: [Abilities.BigSmash,Abilities.BiggerSmash,Abilities.BiggestSmash,Abilities.Guard,Abilities.Strength],
+        //stats
+        startingStr: 10,
+        startingAgi: 6,
+        startingCon: 8,
+        startingInt: 4,
+        increasePerLevelStr: 3,
+        increasePerLevelCon: 2,
+        increasePerLevelAgi: 1,
+        increasePerLevelInt :0,
+
     },
     Mage: {
         name: "Mage",
         icon: "ra ra-crystal-wand",
         attackSpeed: 1500,
+        abilities: [Abilities.Firebolt,Abilities.Firewave,Abilities.Firestorm,Abilities.Quicken,Abilities.Smarterizer],
+        //stats
+        startingStr :4,
+        startingAgi: 8,
+        startingCon :6,
+        startingInt: 10,
+        increasePerLevelInt: 3,
+        increasePerLevelAgi: 2,
+        increasePerLevelCon: 1,
+        increasePerLevelStr: 0,
     },
     Cleric: {
         name: "Cleric",
         icon: "fas fa-cross",
         attackSpeed: 1000,
+        abilities: [Abilities.HealFirst,Abilities.HealAll,Abilities.HealLowest,Abilities.Fortify,Abilities.Regenerate],
+        //stats
+        startingStr: 6,
+        startingAgi :4,
+        startingCon : 10,
+        startingInt : 8,
+        increasePerLevelCon : 3,
+        increasePerLevelInt : 2,
+        increasePerLevelStr : 1,
+        increasePerLevelAgi : 0,
     }
 };
 

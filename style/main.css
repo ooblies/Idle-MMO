@@ -2,6 +2,19 @@
     DEMO STYLE
 */
 
+.strength {
+    color: purple;
+}
+.agility {
+    color:green;
+}
+.intelligence {
+    color:blue;
+}
+.constitution {
+    color:red;
+}
+
 .clickable {
     cursor: pointer;
 }

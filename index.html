@@ -20,7 +20,11 @@
     <link rel="stylesheet" type="text/css" href="style/main.css" />
     <link href="3rdParty/Font-Awesome/css/all.css" rel="stylesheet" />
     <link href="3rdParty/RPG-Awesome/css/rpg-awesome.css" rel="stylesheet" />
+    
+    <script src="js/stats.js"></script>
+    <script src="js/abilities.js"></script>
     <script src="js/constants.js"></script>
+    
     <!-- Main -->
     <script src="js/main.js"></script>
 </head>
@@ -68,16 +72,18 @@
                     <ul class="collapse show list-unstyled list-group-scroll" id="characterSubmenu">
                         <li class="animate-repeat" ng-repeat="character in data.characters">                                                        
                             <div class="d-flex sidebar-sub-item" >
-                                <div class="mr-auto p-2 clickable" data-toggle="modal" data-target="#characterModal" data-character-id="{{character.id}}">
-                                    <i class="{{character.class.icon}}"></i> {{character.name}}({{getCharacterLevel(character.experience)}}) ({{getExperienceMin(character.experience)}}|{{character.experience}}|{{getExperienceMax(character.experience)}})
+                                <div class="mr-auto clickable" data-toggle="modal" data-target="#characterModal" data-character-id="{{character.id}}">
+                                    <i class="{{character.class.icon}}"></i> {{character.name}} ({{getCharacterLevel(character.experience)}})
                                 </div>
-                                <div class="p-2" style="cursor:pointer;">
+                                <div class="clickable">
                                     <i class="fas fa-fist-raised" ng-click="enterDungeon(character.id)"></i>
                                 </div>
                             </div>
                         </li>
                         <li class="animate-repeat">
-                            <a href="#create-character" class="sidebar-sub-item"><i class="fas fa-plus"></i>Create Character</a>
+                            <div class="sidebar-sub-item clickable" data-toggle="modal" data-target="#createCharacterModal">
+                                <i class="fas fa-plus"></i> Create Character
+                            </div>
                         </li>
                     </ul>
                 </li>
@@ -139,7 +145,7 @@
                                 {{character.name}}
                                 <!-- HP -->
                                 <div class=" progress health-bar-container" style="height: 2px;">
-                                    <div id="character{{character.id}}health" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar health-bar" role="progressbar" aria-valuenow="{{getCharacterCurrentHealth(character.id)}}" aria-valuemin="0" aria-valuemax="{{getCharacterMaxHealth(character.id)}}"
+                                    <div id="character{{character.id}}health" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar health-bar" role="progressbar" aria-valuenow="{{getCharacterCurrentHealth(character.id)}}" aria-valuemin="0" aria-valuemax="{{getEffectiveMaxHealth(character.id)}}"
                                         onsubmit="ngFire( 'killCharacter',this)"></div>
                                 </div>
                                 <!-- Attack -->
@@ -181,39 +187,6 @@
                     </div>
                 </div>
             </section>
-            <section id="create-character" style="display:none;">
-                <h2>Create Character</h2>
-                <form id="formCreateCharacter" class="needs-validation" novalidate ng-submit="createCharacter()">
-                    <div class="form-group row">
-                        <label for="createCharacterFormName" class="col-sm-2 col-form-label">Name</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control" id="createCharacterFormName" placeholder="Name..." required autocomplete="off">
-                            <div class="invalid-feedback"> <div></div>
-                                Please enter a name.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label for="createCharacterFormClass" class="col-sm-2 col-form-label">Class</label>
-                        <div class="col-sm-10">
-                            <select class="custom-select" id="createCharacterFormClass" required>
-                                <option invalid disabled selected value="">Choose...</option>
-                                <option ng-repeat="class in CONSTANTS.classes track by $index" value="{{$index}}">{{class.name}}</option>                      
-                            </select>
-                            <div class="invalid-feedback">
-                                Please select a class.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group row">
-                        <div class="col-sm-10">
-                            <button type="submit" class="btn btn-primary">Create</button>
-                        </div>
-                    </div>
-                </form>
-
-            </section>
         </div>
     </div>
     <script type="text/javascript">
@@ -225,7 +198,7 @@
     </script>
 
 
-<!-- MODAL -->
+<!-- MODALs -->
 <div class="modal fade" id="characterModal" tabindex="-1" role="dialog" aria-labelledby="characterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
@@ -244,6 +217,24 @@
                     <img src="images/characterAbilities.png" />
                 </div>
             </div>
+            <hr>
+            <div class="row">
+                <span class="col-sm-2"></span>
+                <div class="col-sm-2 strength">
+                    Str: <label id="lblCharacterModalStrength"></label>
+                </div>
+                <div class="col-sm-2 agility">
+                    Agi: <label id="lblCharacterModalAgility"></label>
+                </div>
+                <div class="col-sm-2 intelligence">
+                    Int: <label id="lblCharacterModalIntelligence"></label>
+                </div>
+                <div class="col-sm-2 constitution">
+                    Con: <label id="lblCharacterModalConstitution"></label>
+                </div>
+                <span class="col-sm-2"></span>
+            </div>
+            <hr>
           <dl class="row">
             <dt class="col-sm-3">
                 Class
@@ -282,8 +273,59 @@
                 <label id="lblCharacterModalAttackDamage"></label>
             </dd>
           </dl>
+
+          Ability1:<label id="lblCharacterModalAbility1"></label><br/>
+          Ability2:<label id="lblCharacterModalAbility2"></label><br/>
+          Ability3:<label id="lblCharacterModalAbility3"></label><br/>
         </div>
         <div class="modal-footer">
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Create Character -->
+  <div class="modal fade" id="createCharacterModal" tabindex="-1" role="dialog" aria-labelledby="createCharacterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createCharacterModalLabel">Create Character</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form id="formCreateCharacter" class="needs-validation" novalidate ng-submit="createCharacter()">
+                <div class="form-group row">
+                    <label for="createCharacterFormName" class="col-sm-2 col-form-label">Name</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="createCharacterFormName" placeholder="Name..." required autocomplete="off">
+                        <div class="invalid-feedback"> <div></div>
+                            Please enter a name.
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="createCharacterFormClass" class="col-sm-2 col-form-label">Class</label>
+                    <div class="col-sm-10">
+                        <select class="custom-select" id="createCharacterFormClass" required>
+                            <option disabled selected value="">Choose...</option>
+                            <option ng-repeat="class in CONSTANTS.classes track by $index" value="{{class.name}}">{{class.name}}</option>                      
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a class.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-10">
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+
         </div>
       </div>
     </div>
