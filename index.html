@@ -21,9 +21,12 @@
     <link href="3rdParty/Font-Awesome/css/all.css" rel="stylesheet" />
     <link href="3rdParty/RPG-Awesome/css/rpg-awesome.css" rel="stylesheet" />
     
+    <script src="js/locations.js"></script>
+    <script src="js/levels.js"></script>
     <script src="js/stats.js"></script>
     <script src="js/abilities.js"></script>
     <script src="js/classes.js"></script>
+    <script src="js/characters.js"></script>
     
     <script src="js/items.js"></script>
     <script src="js/enemies.js"></script>
@@ -39,103 +42,101 @@
     <div class="wrapper">
         <!-- Sidebar  -->
         <nav id="sidebar">
-            <div class="sidebar-header">
+            <div class="sidebar-header fixed-top">
                 <h3>Idle MMO</h3>
-                <strong>IM</strong>
             </div>
 
             <!-- Home -->
-            <ul class="list-unstyled components">
+            <ul class="sidebar-body list-unstyled components">
                 <li>
-                    <a href="#townSubmenu" class="sidebar-sub-item">
-                        <i class="fas fa-home"></i> Town
-                    </a>
-                    <ul class="collapse show list-unstyled list-group-scroll" id="townSubmenu">
-                        <li class="animate-repeat">
-                            <div class="sidebar-sub-item">                                
-                                <a href="" ng-click="saveGame()">Save Game</a>
-                            </div>
-                        </li>                        
-                        <li class="animate-repeat">
-                            <div class="sidebar-sub-item">                                
-                                <a href="" ng-click="loadGame()">Load Game</a>
-                            </div>
-                        </li>                        
-                        <li class="animate-repeat">
-                            <div class="sidebar-sub-item">                                
-                                <a href="" ng-click="deleteSave()">Delete Save</a>
-                            </div>
+                    <ul class="collapse show list-unstyled list-group-scroll nav sidebar-nav" id="myTab" role="tablist">
+
+                        <li class="animate-repeat sidebar-sub-item">
+                            <a class="active" id="town-tab" data-toggle="tab" href="#town" role="tab" aria-controls="town" aria-selected="true"><i class="fas fa-home"></i> Town</a>
                         </li>
+                        <li class="animate-repeat sidebar-sub-item">
+                            <a class="" id="dungeon-tab" data-toggle="tab" href="#dungeon" role="tab" aria-controls="dungeon" aria-selected="false"><i class="fas fa-dungeon"></i> Dungeon</a>
+                        </li>
+
+                        <a href="#characterSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-sub-item">
+                            <i class="fas fa-user"></i> Characters
+                        </a>
+                        <ul class="collapse show list-unstyled list-group-scroll" id="characterSubmenu">
+                            <li class="animate-repeat" ng-repeat="character in data.characters">                                                        
+                                <div class="d-flex sidebar-sub-sub-item" >
+                                    <div class="mr-auto clickable" data-toggle="modal" data-target="#characterModal" data-character-id="{{character.id}}">
+                                        <i class="{{character.class.icon}}"></i> {{character.name}} ({{character.level}})
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="animate-repeat">
+                                <div class="sidebar-sub-sub-item clickable" data-toggle="modal" data-target="#createCharacterModal">
+                                    <i class="fas fa-plus"></i> Create Character
+                                </div>
+                            </li>
+                        </ul>
+
+                        <a href="#groupSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-sub-item">
+                            <i class="fas fa-users"></i> Groups
+                        </a>
+                        <ul class="collapse list-unstyled list-group-scroll" id="groupSubmenu">
+                            <li class="animate-repeat" ng-repeat="group in data.groups">                                                        
+                                <div class="d-flex sidebar-sub-sub-item" >
+                                    <div class="mr-auto clickable" data-toggle="modal" data-target="#createGroupModal" data-group-id="{{group.id}}">
+                                        {{group.name}}
+                                    </div>
+                                    <div ng-show="getGroupCurrentFloor(group.id) > 0">
+                                        <i class="fas fa-dungeon"></i> {{getGroupCurrentFloor(group.id)}}
+                                    </div>
+                                    <div ng-hide="getGroupCurrentFloor(group.id) > 0" class="clickable">
+                                        <i class="fas fa-fist-raised" ng-click="sendGroupToDungeon(group.id)"></i>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="animate-repeat">
+                                <div class="sidebar-sub-sub-item clickable" data-toggle="modal" data-target="#createGroupModal">
+                                    <i class="fas fa-plus"></i> Create Group
+                                </div>
+                            </li>
+                        </ul>
+
+                            
+                        <a href="#inventorySubMenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-sub-item">
+                            <i class="fas fa-archive"></i> Inventory ({{data.gold}}g)
+                        </a>
+                        <ul class="collapse list-unstyled list-group-scroll" id="inventorySubmenu">
+                            <li class="animate-repeat" ng-repeat="item in data.sharedInventory track by $index">
+                                <a class="sidebar-sub-sub-item"><i class="{{item.icon}}"></i> {{item.name}} ({{item.count}})</a>
+                            </li>
+                        </ul>
+
+
+                        <a href="#adminSubmenu" data-toggle="collapse" aria-expanded="false"  class="dropdown-toggle sidebar-sub-item">
+                            <i class="fas fa-cogs"></i> Admin
+                        </a>
+                        <ul class="collapse list-unstyled list-group-scroll" id="adminSubmenu">
+                            <li class="animate-repeat">
+                                <div class="sidebar-sub-sub-item">                                
+                                    <a href="" ng-click="saveGame()"><i class="fas fa-save"></i>Save Game</a>
+                                </div>
+                            </li>                        
+                            <li class="animate-repeat">
+                                <div class="sidebar-sub-sub-item">                                
+                                    <a href="" ng-click="loadGame()"><i class="far fa-save"></i>Load Game</a>
+                                </div>
+                            </li>                        
+                            <li class="animate-repeat">
+                                <div class="sidebar-sub-sub-item">                                
+                                    <a href="" ng-click="deleteSave()"><i class="fas fa-trash"></i>Delete Save</a>
+                                </div>
+                            </li>
+                        </ul>
                     </ul>
                 </li>
             </ul>
             
-            <!-- Groups -->
-            <ul class="components">
-                <li class="active">
-                    <a href="#groupSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle sidebar-sub-item">
-                        <i class="fas fa-users"></i> Groups
-                    </a>
-                    <ul class="collapse show list-unstyled list-group-scroll" id="groupSubmenu">
-                        <li class="animate-repeat" ng-repeat="group in data.groups">                                                        
-                            <div class="d-flex sidebar-sub-item" >
-                                <div class="mr-auto clickable" data-toggle="modal" data-target="#createGroupModal" data-group-id="{{group.id}}">
-                                    {{group.name}}
-                                </div>
-                                <div ng-show="getGroupCurrentFloor(group.id) > 0">
-                                    <i class="fas fa-dungeon"></i> {{getGroupCurrentFloor(group.id)}}
-                                </div>
-                                <div ng-hide="getGroupCurrentFloor(group.id) > 0" class="clickable">
-                                    <i class="fas fa-fist-raised" ng-click="sendGroupToDungeon(group.id)"></i>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="animate-repeat">
-                            <div class="sidebar-sub-item clickable" data-toggle="modal" data-target="#createGroupModal">
-                                <i class="fas fa-plus"></i> Create Group
-                            </div>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-            <!-- Characters -->
-            <ul class="components">
-                <li class="active">
-                    <a href="#characterSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle sidebar-sub-item">
-                        <i class="fas fa-users"></i> Characters
-                    </a>
-                    <ul class="collapse show list-unstyled list-group-scroll" id="characterSubmenu">
-                        <li class="animate-repeat" ng-repeat="character in data.characters">                                                        
-                            <div class="d-flex sidebar-sub-item" >
-                                <div class="mr-auto clickable" data-toggle="modal" data-target="#characterModal" data-character-id="{{character.id}}">
-                                    <i class="{{character.class.icon}}"></i> {{character.name}} ({{getCharacterLevel(character.experience)}})
-                                </div>
-                            </div>
-                        </li>
-                        <li class="animate-repeat">
-                            <div class="sidebar-sub-item clickable" data-toggle="modal" data-target="#createCharacterModal">
-                                <i class="fas fa-plus"></i> Create Character
-                            </div>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-            <!-- Items -->
-            <ul class="components">
-                <li class="active">
-                    <a href="#inventorySubMenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-dropdown-toggle sidebar-sub-item">
-                        <i class="fas fa-archive"></i> Inventory ({{data.gold}}g)
-                    </a>
-                    <ul class="collapse show list-unstyled list-group-scroll" id="inventorySubmenu">
-                        <li class="animate-repeat" ng-repeat="item in data.sharedInventory track by $index">
-                            <a class="sidebar-sub-item"><i class="{{item.icon}}"></i> {{item.name}} ({{item.count}})</a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-
             <!-- To-Do: change this to a function to calculate thresholds based on CONSTANTS.Performance.tickDuration -->
-            <div class="performance fixed-bottom">
+            <div class="performance fixed-bottom sidebar-footer">
                 <div ng-class="{'performance-ok':performance.timePerTick < 25,
                 'performance-iffy':performance.timePerTick >= 25 && performance.timePerTick < 50,
                 'performance-yikes':performance.timePerTick >= 50}">
@@ -149,80 +150,85 @@
         </nav>
 
         <!-- Page Content  -->
+        
         <div id="content" class="container-fluid">
-            <section id="town">
-                <img src="images/Town.png" />
-                <div class="d-inline-flex flex-column">
-                    <!-- FLOOR -->
-                    <div class="dungeon-floor flex-column p-2" ng-repeat="floor in [].constructor(data.dungeon.maxFloor) track by $index">
-                        <div class="p-2">
-                            <h3>{{$index + 1}} {{CONSTANTS.dungeonFloors[$index].name}} - {{data.dungeon.floors[$index].enemyWaves.length}} waves remain</h3>
-                        </div>
-                        <div class="d-flex p-2">
-                            <!-- GROUP -->
-                            <div class="d-flex mr-auto">
-                                <!-- CHARACTER -->
-                                <div class="p-2" style="width:100px" ng-repeat="character in getCharactersByGroupId(data.dungeon.floors[$index].group.id) | orderBy:'-'">
-                                    {{character.name}}
-                                    <!-- HP -->
-                                    <div class=" progress health-bar-container" style="height: 2px;">
-                                        <div id="character{{character.id}}health" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar health-bar" role="progressbar" aria-valuenow="{{getCharacterCurrentHealth(character.id)}}" aria-valuemin="0" aria-valuemax="{{getEffectiveMaxHealth(character.id)}}"
-                                            ></div>
-                                    </div>
-                                    <div ng-hide="getCharacterCurrentHealth(character.id) <= 0">
-                                        <!-- Attack -->
-                                        <div class=" progress" style="height: 2px; margin-top:2px;">
-                                            <div id="character{{character.id}}attack" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar progress-bar-increasing attack-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{character.class.attackSpeed}}" onsubmit="ngFire( 'attack',this)"></div>
+            <div class="tab-content" id="v-pills-tabContent">                    
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="town" role="tabpanel" aria-labelledby="town-tab">
+                        <h1>Town</h1>
+                    </div>
+                    <div class="tab-pane fade" id="dungeon" role="tabpanel" aria-labelledby="dungeon-tab">
+                        <h1>Dungeon</h1>
+    
+                        <div class="d-inline-flex flex-column">
+                            <!-- FLOOR -->
+                            <div class="dungeon-floor flex-column p-2" ng-repeat="floor in [].constructor(data.dungeon.maxFloor) track by $index">
+                                <div class="p-2">
+                                    <h3>{{$index + 1}} {{CONSTANTS.dungeonFloors[$index].name}} - {{data.dungeon.floors[$index].enemyWaves.length}} waves remain</h3>
+                                </div>
+                                <div class="d-flex p-2">
+                                    <!-- GROUP -->
+                                    <div class="d-flex mr-auto">
+                                        <!-- CHARACTER -->
+                                        <div class="p-2" style="width:100px" ng-repeat="character in getCharactersByGroupId(data.dungeon.floors[$index].group.id) | orderBy:'-'">
+                                            {{character.name}}
+                                            <!-- HP -->
+                                            <div class=" progress health-bar-container" style="height: 2px;">
+                                                <div id="character{{character.id}}health" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar health-bar" role="progressbar" aria-valuenow="{{character.currentHealth}}" aria-valuemin="0" aria-valuemax="{{character.maxHealth}}"
+                                                    ></div>
+                                            </div>
+                                            <div ng-hide="character.currentHealth <= 0">
+                                                <!-- Attack -->
+                                                <div class=" progress" style="height: 2px; margin-top:2px;">
+                                                    <div id="character{{character.id}}attack" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar progress-bar-increasing attack-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{character.attackSpeed}}" onsubmit="ngFire( 'attack',this)"></div>
+                                                </div>
+        
+                                                <!-- Experience -->
+                                                <div class=" progress" style="height: 2px; margin-top:2px;">
+                                                    <div id="character{{character.id}}experience" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar xp-bar" role="progressbar" aria-valuenow="{{character.experience}}" aria-valuemin="{{character.experienceMin}}"
+                                                        aria-valuemax="{{character.experienceMax}}"></div>
+                                                </div>
+                                            </div>
                                         </div>
-
-                                        <!-- Experience -->
-                                        <div class=" progress" style="height: 2px; margin-top:2px;">
-                                            <div id="character{{character.id}}experience" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar xp-bar" role="progressbar" aria-valuenow="{{character.experience}}" aria-valuemin="{{getExperienceMin(character.experience)}}"
-                                                aria-valuemax="{{getExperienceMax(character.experience)}}"></div>
+                                    </div>
+                                    
+                                    <!-- SPACER -->
+                                    <div class="mr-auto" style="padding-top:25px;">
+                                        <span class="ra ra-crossed-swords"></span>
+                                    </div>
+                                    <!-- ENEMY -->
+                                    <div class="p-2" style="width:100px" ng-repeat="enemy in data.dungeon.floors[$index].enemyWaves[0] track by $index">
+                                        {{enemy.name}}
+                                        <!-- HP -->
+                                        <div class="progress health-bar-container" style="height: 2px;">
+                                            <div id="floor{{$parent.$index}}enemy{{$index}}health" floor-index="{{$parent.$index}}" enemy-index="{{$index}}" enemy-id="{{enemy.id}}" class="progress-bar health-bar" role="progressbar" aria-valuenow="{{enemy.currentHealth}}" aria-valuemin="0" aria-valuemax="{{enemy.health}}"
+                                                ></div>
                                         </div>
+                                        <div ng-hide="enemy.currentHealth <= 0">
+                                            <!-- Attack -->
+                                            <div class=" progress" style="height: 2px; margin-top:2px;">
+                                                <div id="floor{{$parent.$index}}enemy{{$index}}attack" floor-index="{{$parent.$index}}" enemy-index="{{$index}}"  attack-name="{{enemy.attacks[enemy.currentAttackIndex]}}" enemy-name="{{enemy.name}}"  attack-damage="{{enemy.attackDamages[enemy.currentAttackIndex]}}" class="progress-bar progress-bar-increasing attack-bar"
+                                                    role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{enemy.attackSpeeds[enemy.currentAttackIndex]}}" onsubmit="ngFire( 'triggerEnemyAttack',this)"></div>
+                                            </div>
+                                            <span style="font-size: x-small;">{{enemy.attacks[enemy.currentAttackIndex]}}</span>
+                                        </div>
+        
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <!-- SPACER -->
-                            <div class="mr-auto" style="padding-top:25px;">
-                                <span class="ra ra-crossed-swords"></span>
-                            </div>
-                            <!-- ENEMY -->
-                            <div class="p-2" style="width:100px" ng-repeat="enemy in data.dungeon.floors[$index].enemyWaves[0] track by $index">
-                                {{enemy.name}}
-                                <!-- HP -->
-                                <div class="progress health-bar-container" style="height: 2px;">
-                                    <div id="floor{{$parent.$index}}enemy{{$index}}health" floor-index="{{$parent.$index}}" enemy-index="{{$index}}" enemy-id="{{enemy.id}}" class="progress-bar health-bar" role="progressbar" aria-valuenow="{{enemy.currentHealth}}" aria-valuemin="0" aria-valuemax="{{enemy.health}}"
-                                        ></div>
+        
+                                <div class=" progress" style="height: 2px;">
+                                    <div id="floor{{$index}}bar" class="progress-bar" floor-index="{{$index}}" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="5000" onsubmit="ngFire( 'regenerateFloorEnemies',this)"></div>
                                 </div>
-                                <div ng-hide="enemy.currentHealth <= 0">
-                                    <!-- Attack -->
-                                    <div class=" progress" style="height: 2px; margin-top:2px;">
-                                        <div id="floor{{$parent.$index}}enemy{{$index}}attack" floor-index="{{$parent.$index}}" enemy-index="{{$index}}"  attack-name="{{enemy.attacks[enemy.currentAttackIndex]}}" enemy-name="{{enemy.name}}"  attack-damage="{{enemy.attackDamages[enemy.currentAttackIndex]}}" class="progress-bar progress-bar-increasing attack-bar"
-                                            role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{enemy.attackSpeeds[enemy.currentAttackIndex]}}" onsubmit="ngFire( 'triggerEnemyAttack',this)"></div>
-                                    </div>
-                                    <span style="font-size: x-small;">{{enemy.attacks[enemy.currentAttackIndex]}}</span>
-                                </div>
-
                             </div>
-                        </div>
-
-                        <div class=" progress" style="height: 2px;">
-                            <div id="floor{{$index}}bar" class="progress-bar" floor-index="{{$index}}" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="5000" onsubmit="ngFire( 'regenerateFloorEnemies',this)"></div>
-                        </div>
+                        </div>    
                     </div>
                 </div>
-            </section>
+
         </div>
+
+                
     </div>
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $('#sidebarCollapse').on('click', function() {
-                $('#sidebar').toggleClass('active');
-            });
-        });
-    </script>
+
 
 
 <!-- MODALs -->
@@ -300,10 +306,6 @@
                 <label id="lblCharacterModalAttackDamage"></label>
             </dd>
           </dl>
-
-          Ability1:<label id="lblCharacterModalAbility1"></label><br/>
-          Ability2:<label id="lblCharacterModalAbility2"></label><br/>
-          Ability3:<label id="lblCharacterModalAbility3"></label><br/>
         </div>
         <div class="modal-footer">
         </div>
@@ -312,7 +314,7 @@
   </div>
   <!-- Create Character -->
   <div class="modal fade" id="createCharacterModal" tabindex="-1" role="dialog" aria-labelledby="createCharacterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="createCharacterModalLabel">Create Character</h5>
@@ -359,7 +361,7 @@
   </div>
   <!-- group modal-->
   <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="createGroupModalLabel">Create Group</h5>
@@ -371,43 +373,48 @@
             <form id="formCreateGroup" class="needs-validation" novalidate ng-submit="createGroup()">
                 <label id="createGroupId"></label>
                 <div class="form-group row">
-                    <label for="createGroupFormName" class="col-sm-2 col-form-label">Name</label>
-                    <div class="col-sm-10">
+                    <label for="createGroupFormName" class="col-sm-3 col-form-label">Name</label>
+                    <div class="col-sm-8">
                         <input type="text" class="form-control" id="createGroupFormName" placeholder="Name..." required autocomplete="off">
                         <div class="invalid-feedback"> <div></div>
                             Please enter a name.
                         </div>
                     </div>
-                    <label for="createGroupFormCharacter1" class="col-sm-2 col-form-label">Character 1</label>
-                    <div class="col-sm-10">
+                    <br/> <br/> 
+                    <label for="createGroupFormCharacter1" class="col-sm-3 col-form-label">Character 1</label>
+                    <div class="col-sm-8">
                         <select class="custom-select" id="createGroupFormCharacter1" >
                             <option selected value="">Empty</option>
                             <option ng-repeat="character in data.characters track by $index" value="{{character.id}}">{{character.name}}</option>                      
                         </select>          
                     </div>  
-                    <label for="createGroupFormCharacter2" class="col-sm-2 col-form-label">Character 2</label>
-                    <div class="col-sm-10">
+                    <br/> <br/> 
+                    <label for="createGroupFormCharacter2" class="col-sm-3 col-form-label">Character 2</label>
+                    <div class="col-sm-8">
                         <select class="custom-select" id="createGroupFormCharacter2" >
                             <option selected value="">Empty</option>
                             <option ng-repeat="character in data.characters track by $index" value="{{character.id}}">{{character.name}}</option>                      
                         </select>          
                     </div>  
-                    <label for="createGroupFormCharacter3" class="col-sm-2 col-form-label">Character 3</label>
-                    <div class="col-sm-10">
+                    <br/> <br/> 
+                    <label for="createGroupFormCharacter3" class="col-sm-3 col-form-label">Character 3</label>
+                    <div class="col-sm-8">
                         <select class="custom-select" id="createGroupFormCharacter3" >
                             <option selected value="">Empty</option>
                             <option ng-repeat="character in data.characters track by $index" value="{{character.id}}">{{character.name}}</option>                      
                         </select>          
                     </div>  
-                    <label for="createGroupFormCharacter4" class="col-sm-2 col-form-label">Character 4</label>
-                    <div class="col-sm-10">
+                    <br/> <br/> 
+                    <label for="createGroupFormCharacter4" class="col-sm-3 col-form-label">Character 4</label>
+                    <div class="col-sm-8">
                         <select class="custom-select" id="createGroupFormCharacter4" >
                             <option selected value="">Empty</option>
                             <option ng-repeat="character in data.characters track by $index" value="{{character.id}}">{{character.name}}</option>                      
                         </select>          
                     </div>  
-                    <label for="createGroupFormCharacter5" class="col-sm-2 col-form-label">Character 5</label>
-                    <div class="col-sm-10">
+                    <br/> <br/> 
+                    <label for="createGroupFormCharacter5" class="col-sm-3 col-form-label">Character 5</label>
+                    <div class="col-sm-8">
                         <select class="custom-select" id="createGroupFormCharacter5" >
                             <option selected value="">Empty</option>
                             <option ng-repeat="character in data.characters track by $index" value="{{character.id}}">{{character.name}}</option>                      

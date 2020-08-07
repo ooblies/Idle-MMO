@@ -3,7 +3,7 @@ const enemies = {
         id: "Mouse",
         name: "Mouse",
         level: 1,
-        health: 50000,
+        health: 50,
         attacks: ["Bite", "Chomp","Munch"],
         attackProbabilities: [10, 5, 1],
         attackDamages: [1, 3, 5],

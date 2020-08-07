@@ -55,7 +55,6 @@ class Ability {
     }
 }
 
-
 const abilities = {
     //Warrior    
     BigSmash: new Ability("Big Smash", AbilityType.Damage, TargetType.EnemyFirst, 6000, //generic

@@ -13,15 +13,17 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     };
     $scope.loadGame = function loadGame() {
         var saveString = localStorage.getItem("idleMMOSave");
-        if (saveString) {
+        if (saveString && saveString != "{}") {
             var saveObject = JSON.parse(saveString);
             $scope.data = saveObject;
-        
-            $scope.data.dungeon.maxFloor = 1;
-            $scope.data.dungeon.maxFloor = $scope.data.characters.reduce(function(prev, current) {
-            return (prev.maxFloor > current.maxFloor) ? prev : current
-        }).maxFloor;
-    
+            
+            var chars = [];
+            saveObject.characters.forEach(char => {
+                chars.push(Character.createFromSave(char));
+            })
+            
+            $scope.data.characters = chars;
+
         } else {
             $scope.startNewGame();
         }        
@@ -29,7 +31,6 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     $scope.deleteSave = function deleteSave() {
         localStorage.removeItem('idleMMOSave');
         location.reload(true);
-        $scope.startNewGame();
     }
     $scope.startNewGame = function startNewGame() {
         $scope.data = {};
@@ -37,7 +38,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         $scope.data.characters = [];
         $scope.data.groups = [];
         $scope.data.dungeon = {};
+        $scope.data.dungeon.maxFloor = 1;
         $scope.data.dungeon.floors = [];
+
         //temp characters
         $scope.createCharacterObject(1,'Ooblies',CONSTANTS.classes.Warrior);
         $scope.createCharacterObject(2,'Rohnjudes',CONSTANTS.classes.Mage);
@@ -45,99 +48,15 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
         $scope.data.sharedInventory = [];
         
-        $scope.data.dungeon.maxFloor = 1;
-        $scope.data.dungeon.maxFloor = $scope.data.characters.reduce(function(prev, current) {
-            return (prev.maxFloor > current.maxFloor) ? prev : current
-        }).maxFloor;
-    
         $scope.generateDungeonEnemies();        
     };
-
-    //STATS
-    $scope.getEffectiveStat = function getEffectiveStat(stat, charId) {
-        var char = $scope.getCharacterById(charId);
-        var level = $scope.getCharacterLevel(char.experience);
-        
-        var effectiveStat = 0;
-
-        switch (stat) {
-            case CONSTANTS.stats.Strength:
-                effectiveStat = char.class.startingStr + (level * char.class.increasePerLevelStr);
-                break;
-            case CONSTANTS.stats.Agility:
-                effectiveStat = char.class.startingAgi + (level * char.class.increasePerLevelAgi);
-                break;
-            case CONSTANTS.stats.Intelligence:
-                effectiveStat = char.class.startingInt + (level * char.class.increasePerLevelInt);
-                break;
-            case CONSTANTS.stats.Constitution:
-                effectiveStat = char.class.startingCon + (level * char.class.increasePerLevelCon);
-                break;
-            default:                
-        }
-
-        return effectiveStat;
-    }
-
-    $scope.getEffectiveAttackSpeed = function getEffectiveAttackSpeed(charId) {
-        var char = $scope.getCharacterById(charId);
-        var effectiveAgility = $scope.getEffectiveStat(CONSTANTS.stats.Agility, charId);
-
-        var effectiveMultiplier = 1 - (effectiveAgility/200);
-        var effectiveSpeed = char.class.attackSpeed * effectiveMultiplier;
-        //to-do: add weapon speed
-
-        return effectiveSpeed;
-    }
-
-    $scope.getEffectiveAttackDamage = function getEffectiveAttackDamage(charId) {
-        var char = $scope.getCharacterById(charId);
-        var effectiveStrength = $scope.getEffectiveStat(CONSTANTS.stats.Strength, charId);
-        //to-do: add weapon damage
-
-        return effectiveStrength * 2;
-
-    }
-
-    $scope.getEffectiveMaxHealth = function getEffectiveMaxHealth(charId) {
-        var char = $scope.getCharacterById(charId);
-        var effectiveConstitution = $scope.getEffectiveStat(CONSTANTS.stats.Constitution, charId);
-        
-        return effectiveConstitution * 10;
-    }
-
-    $scope.getEffectiveAbilityMultiplier = function getEffectiveAbilityMultiplier(charId) {
-        var char = $scope.getCharacterById(charId);
-        var effectiveIntelligence = $scope.getEffectiveStat(CONSTANTS.stats.Intelligence, charId);
-        
-        return 1 + (effectiveIntelligence/200);
-    }
-
-    $scope.getCharacterLevelById = function getCharacterLevelById(charId) {
-        var char = $scope.getCharacterById(charId);
-        return $scope.getCharacterLevel(char.experience);
-    };
-
-    $scope.getCharacterLevel = function(experience) {
-        for (l = 0; l < CONSTANTS.levels.length; l++) {
-            if (CONSTANTS.levels[l] <= experience && CONSTANTS.levels[l + 1] > experience) {
-                return l;
-            }
-        }
-    };
-    $scope.getExperienceMin = function(experience) {
-        return CONSTANTS.levels[$scope.getCharacterLevel(experience)];
-    };
-    $scope.getExperienceMax = function(experience) {
-        return CONSTANTS.levels[$scope.getCharacterLevel(experience) + 1];
-    }
 
     $scope.popover = function() {
         $("[data-toggle=popover]").popover();
     };
 
     $scope.getCharactersByGroupId = function getCharactersByGroupId(groupId) {
-        if (groupId) {
+        if (groupId) {            
             var group = $scope.getGroupById(groupId) ;
             var characters = [];
             group.characterIds.forEach(c => {
@@ -152,15 +71,14 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     }
 
     $scope.healGroup = function healGroup(groupId) {
-        var group = $scope.getGroupById(groupId);
-        group.characterIds.forEach(c => {
-            $scope.healCharacter(c);
-        });
+        var chars = $scope.getCharactersByGroupId(groupId).forEach(c => {
+            c.fullHeal();
+        });        
     }
 
 
 
-    //Send a character to the first floor of the dungeon
+    //Send a group to the first floor of the dungeon
     $scope.sendGroupToDungeon = function sendGroupToDungeon(groupId) {
         var group = $scope.getGroupById(groupId);
         $scope.healGroup(groupId);
@@ -178,40 +96,22 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     }
 
     $scope.getCharacterById = function(characterId) {
-        return $scope.data.characters.find(c => {
-            return c.id == characterId
+        var char = {};
+        $scope.data.characters.forEach(c => {
+            if (c.id == characterId) {
+                char = c;
+            }
         });
+
+        return char;        
     };
 
-    $scope.getCharacterCurrentHealth = function(characterId) {
-        var char = $scope.getCharacterById(characterId);
-        
-        return char.currentHealth;
-    }
-
-    $scope.adjustCharacterCurrentHealth = function(characterId, adjustment) {
-        var char = $scope.getCharacterById(characterId);
-        char.currentHealth += adjustment;
-
-        if (char.currentHealth > $scope.getEffectiveMaxHealth(characterId)) {
-            char.currentHealth = $scope.getEffectiveMaxHealth(characterId);            
-        }
-        if (char.currentHealth < 0) {
-            char.currentHealth = 0;
-        }
-    }
-
-    $scope.healCharacter = function(characterId) {
-        var char = $scope.getCharacterById(characterId);
-        char.currentHealth = $scope.getEffectiveMaxHealth(characterId);
-    }
-
     $scope.triggerEnemyAttack = function triggerEnemyAttack(enemy) {
-        var floorIndex = enemy.getAttribute('floor-index');
+        var floorIndex = parseInt(enemy.getAttribute('floor-index'));
         var attackDamage = enemy.getAttribute('attack-damage');
         var attackName = enemy.getAttribute('attack-name');
         var enemyName = enemy.getAttribute('enemy-name');
-        var enemyIndex = enemy.getAttribute('enemy-index');
+        var enemyIndex = parseInt(enemy.getAttribute('enemy-index'));
 
         var group = $scope.data.dungeon.floors[floorIndex].group
 
@@ -219,16 +119,13 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             
             var targetCharId = -1;
             group.characterIds.forEach(function(c) {
-                if ($scope.getCharacterCurrentHealth(c) > 0 && targetCharId == -1) {
+                if ($scope.getCharacterById(c).currentHealth > 0 && targetCharId == -1) {
                     targetCharId = c;
                 }
             });
 
             if (targetCharId == -1) {
-                //everyone's  dead
-                group.characterIds.forEach(c => {
-                    $scope.healCharacter(c);                    
-                });
+                //everyone's  dead                
                 $scope.data.dungeon.floors[floorIndex].group = null;
                 
                 $('#floor' + floorIndex + 'bar')[0].classList.add('progress-bar-increasing');
@@ -236,9 +133,10 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
                 return;
             }
-            
-            $scope.adjustCharacterCurrentHealth(targetCharId, -attackDamage);
-            var char = $scope.getCharacterById(targetCharId);                        
+
+            var char = $scope.getCharacterById(targetCharId);
+            char.adjustHealth(-attackDamage);
+                                              
             console.log(enemyName + ' ' + attackName + 's ' + char.name + ' for ' + attackDamage + ' damage.');
         }
         
@@ -335,17 +233,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
 
     $scope.createCharacterObject = function createCharacterObject(id, name, newClass) {
-        char = {
-            name: name,
-            class: newClass,
-            id: id,
-            experience: 1,
-            maxFloor: 1,
-        };
+        var char = new Character(id,name,newClass);
 
         $scope.data.characters.push(char);
-
-        char.currentHealth = $scope.getEffectiveMaxHealth(id);
     }
 
     $scope.createCharacter = function createCharacter() {
@@ -479,10 +369,11 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
     $scope.attack = function attack(character) {
         var char = $scope.getCharacterById(character.getAttribute('character-id'));  
-        var floorIndex = character.getAttribute('floor-index');
+        var floorIndex = parseInt(character.getAttribute('floor-index'));
         var floor = $scope.data.dungeon.floors[floorIndex];
 
-        var effectiveDamage = $scope.getEffectiveAttackDamage(char.id);
+        var effectiveDamage = char.attackDamage;
+
         //first enemy
         var currentEnemyIndex = -1;
         
@@ -508,8 +399,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
                 //give enemy.level xp to all characters
                 $scope.data.dungeon.floors[floorIndex].group.characterIds.forEach(c => {
-                    if ($scope.getCharacterCurrentHealth(c) > 0) {
-                        $scope.gainExperience(c, currentEnemy.level);                
+                    var floorChar = $scope.getCharacterById(c);                    
+                    if (floorChar.currentHealth > 0) {
+                        floorChar.gainExperience(currentEnemy.level);                
                     }
                 });
 
@@ -550,7 +442,8 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
                             $scope.data.dungeon.floors[floorIndex].group = null;
 
                             group.characterIds.forEach(c => {
-                                $scope.setCharacterMaxFloor(c, floorIndex + 2);                    
+                                var increaseChar = $scope.getCharacterById(c);
+                                increaseChar.maxFloor = floorIndex + 2;
                             });
                         }
 
@@ -590,16 +483,6 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             $scope.data.sharedInventory.push(item);
         }
     };
-    $scope.gainExperience = function gainExperience(charId, experience) {
-        var char = $scope.getCharacterById(charId);
-        char.experience += experience;
-    }
-
-    
-    $scope.setCharacterMaxFloor = function setCharacterMaxFloor(charId, floor) {
-        var char = $scope.getCharacterById(charId);
-        char.maxFloor = floor;
-    }
 
     $scope.regenerateFloorEnemies = function regenerateFloorEnemies(floor) {
         var floorIndex = parseInt(floor.getAttribute('floor-index'));
@@ -678,8 +561,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         Array.from(attackBars).forEach((element) => {
             var floorIndex = parseInt(element.getAttribute('floor-index'));
             var characterId = element.getAttribute('character-id');
-            var enemyIndex = element.getAttribute('enemy-index');
-
+            var enemyIndex = parseInt(element.getAttribute('enemy-index'));
             
             //check if no characters on floor
             if (!$scope.data.dungeon.floors[floorIndex].group) {
@@ -694,6 +576,7 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
                 }
             }
             if (enemyIndex) {
+                if ($scope.data.dungeon.floors[floorIndex].enemyWaves[0])
                 if ($scope.data.dungeon.floors[floorIndex].enemyWaves[0][enemyIndex]) {
                     if ($scope.data.dungeon.floors[floorIndex].enemyWaves[0][enemyIndex].currentHealth <= 0) {
                         element.ariaValueNow = 0;
@@ -728,16 +611,16 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         var modal = $(this);
         modal.find('.modal-title').text(char.name);
         modal.find('#lblCharacterModalClass')[0].innerText = char.class.name;
-        modal.find('#lblCharacterModalHealth')[0].innerText = $scope.getEffectiveMaxHealth(charId);
-        modal.find('#lblCharacterModalLevel')[0].innerText = $scope.getCharacterLevelById(charId);
-        modal.find('#lblCharacterModalAttackSpeed')[0].innerText = $scope.getEffectiveAttackSpeed(charId);
+        modal.find('#lblCharacterModalHealth')[0].innerText = char.maxHealth;
+        modal.find('#lblCharacterModalLevel')[0].innerText = char.level;
+        modal.find('#lblCharacterModalAttackSpeed')[0].innerText = char.attackSpeed;
         modal.find('#lblCharacterModalMaxFloor')[0].innerText = char.maxFloor;
-        modal.find('#lblCharacterModalAttackDamage')[0].innerText = $scope.getEffectiveAttackDamage(charId);
+        modal.find('#lblCharacterModalAttackDamage')[0].innerText = char.attackDamage;
 
-        modal.find('#lblCharacterModalStrength')[0].innerText = $scope.getEffectiveStat(CONSTANTS.stats.Strength, charId);        
-        modal.find('#lblCharacterModalAgility')[0].innerText =  $scope.getEffectiveStat(CONSTANTS.stats.Agility, charId);
-        modal.find('#lblCharacterModalIntelligence')[0].innerText =  $scope.getEffectiveStat(CONSTANTS.stats.Intelligence, charId);
-        modal.find('#lblCharacterModalConstitution')[0].innerText =  $scope.getEffectiveStat(CONSTANTS.stats.Constitution, charId);
+        modal.find('#lblCharacterModalStrength')[0].innerText = char.strength;
+        modal.find('#lblCharacterModalAgility')[0].innerText =  char.agility;
+        modal.find('#lblCharacterModalIntelligence')[0].innerText =  char.intelligence;
+        modal.find('#lblCharacterModalConstitution')[0].innerText =  char.constitution;
         
     })
 
@@ -813,3 +696,5 @@ function ngFire(fName, p1, p2) {
     }
 
 }
+
+//815
