@@ -41,12 +41,12 @@
 <body ng-controller="idleController">
     <div class="wrapper">
         <!-- Sidebar  -->
-        <nav id="sidebar">
+        <nav id="sidebar" class="disable-scrollbars">
             <div class="sidebar-header fixed-top">
                 <h3>Idle MMO</h3>
             </div>
 
-            <!-- Home -->
+            <!-- Home -->    
             <ul class="sidebar-body list-unstyled components">
                 <li>
                     <ul class="collapse show list-unstyled list-group-scroll nav sidebar-nav" id="myTab" role="tablist">
@@ -134,7 +134,6 @@
                     </ul>
                 </li>
             </ul>
-            
             <!-- To-Do: change this to a function to calculate thresholds based on CONSTANTS.Performance.tickDuration -->
             <div class="performance fixed-bottom sidebar-footer">
                 <div ng-class="{'performance-ok':performance.timePerTick < 25,

@@ -38,11 +38,11 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         $scope.data.characters = [];
         $scope.data.groups = [];
         $scope.data.dungeon = {};
-        $scope.data.dungeon.maxFloor = 1;
+        $scope.data.dungeon.maxFloor = 10;
         $scope.data.dungeon.floors = [];
 
         //temp characters
-        $scope.createCharacterObject(1,'Ooblies',CONSTANTS.classes.Warrior);
+        $scope.createCharacterObject(1,'Ooblies',CONSTANTS.classes.Warrior);        
         $scope.createCharacterObject(2,'Rohnjudes',CONSTANTS.classes.Mage);
         $scope.createGroupObject(1,'TestGroup',$scope.data.characters[0].id, $scope.data.characters[1].id);
 

@@ -1,6 +1,12 @@
-/*
-    DEMO STYLE
-*/
+.disable-scrollbars::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* Chrome/Safari/Webkit */
+}
+
+.disable-scrollbars {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
+}
 
 .sidebar-nav {
     display: block !important;
@@ -119,26 +125,30 @@ span {
 #sidebar {
     min-width: 250px;
     max-width: 250px;
-    background: #7386D5;
+    background: #6d7fcc;
     color: #fff;
     transition: all 0.3s;
+    overflow-y: scroll;
+    position: absolute;
+    top: 0;
+    bottom: 0;
 }
 
-
-
 #sidebar .sidebar-header {
-    height:100px;
+    height:75px;
     padding: 20px;
     background: #6d7fcc;
-    width: 250px;
+    width: 100%;
+    border-bottom: solid 1px white;
 }
 
 #sidebar .sidebar-body {    
-    margin-top:100px;
+    margin-top:75px;
     margin-bottom:75px;
 }
 
 #sidebar .sidebar-footer {
+    border-top: solid 1px white;
     height:75px;
     padding: 20px;
     background: #6d7fcc;
@@ -191,4 +201,13 @@ ul ul .sidebar-sub-sub-item {
     padding: 20px;
     min-height: 100vh;
     transition: all 0.3s;
+    position: absolute;
+    left:250px;
+    top: 75px;
+    bottom: 0;
+    overflow: auto;
+}
+
+body {
+    overflow: hidden;
 }
