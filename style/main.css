@@ -1,3 +1,9 @@
+.progress-bar {
+    
+    -webkit-transition: none !important;
+    -ms-transition: none !important;
+    transition: none !important;
+}
 .disable-scrollbars::-webkit-scrollbar {
     width: 0px;
     background: transparent; /* Chrome/Safari/Webkit */
@@ -49,32 +55,18 @@
     border: 1px solid;
 }
 
+/*
 .no-transition {
     -webkit-transition: none !important;
     -ms-transition: none !important;
     transition: none !important;
 }
-
 .progress-bar-transition {
     -webkit-transition: width .1s ease !important;
     -ms-transition: width .1s ease !important;
     transition: width .1s ease !important;
 }
-
-.performance-ok {
-    color: lightgreen;
-    font-weight: bold;
-}
-
-.performance-iffy {
-    color: yellow;
-    font-weight: bold;
-}
-
-.performance-yikes {
-    color: red;
-    font-weight: bold;
-}
+*/
 
 
 a,
@@ -127,7 +119,7 @@ span {
     max-width: 250px;
     background: #6d7fcc;
     color: #fff;
-    transition: all 0.3s;
+    /*transition: all 0.3s;*/
     overflow-y: scroll;
     position: absolute;
     top: 0;
@@ -200,7 +192,7 @@ ul ul .sidebar-sub-sub-item {
     width: 100%;
     padding: 20px;
     min-height: 100vh;
-    transition: all 0.3s;
+    /*transition: all 0.3s;*/
     position: absolute;
     left:250px;
     top: 75px;

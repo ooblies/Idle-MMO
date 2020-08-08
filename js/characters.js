@@ -12,6 +12,12 @@ class Character {
         this.equipment = {};
         this.groupId = null;
         this.currentHealth = this.maxHealth;
+        this.activeAbilities = [
+            this.class.abilities[0],
+            this.class.abilities[1],
+            this.class.abilities[2],
+        ];
+        
     }
 
     //Static Conastructor from JSON string

@@ -11,5 +11,5 @@ CONSTANTS.levels = levels;
 CONSTANTS.locations = locations;
 
 CONSTANTS.performance = {
-    tickDuration: 50,
+    tickDuration: 10,
 };

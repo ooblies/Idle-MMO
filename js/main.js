@@ -492,7 +492,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         $scope.data.dungeon.floors[floorIndex].resetting = false;
     };
 
-    $scope.tick = function tick() {
+    $scope.tick = function tick() {        
+        var start = window.performance.now();
+
         //run 20/s - all progress bars are updated here
         $scope.performance.timeSinceSave += CONSTANTS.performance.tickDuration;
         if ($scope.performance.timeSinceSave > 5000) {
@@ -500,17 +502,14 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             $scope.performance.timeSinceSave = 0;
         }
 
-        var start = window.performance.now();
-        //code goes here
-
         var progressBars = document.getElementsByClassName("progress-bar-increasing");
         var toAdd = CONSTANTS.performance.tickDuration;
 
 
         //all progressBars with progress-bar-increasing will auto-increment
         Array.from(progressBars).forEach((element) => {
-            element.classList.remove("no-transition");
-            element.classList.add("progress-bar-transition");
+            //element.classList.remove("no-transition");
+            //element.classList.add("progress-bar-transition");
             
             if (parseInt(element.ariaValueMax) <= 50) {
                 element.style.width = "100%";
@@ -523,8 +522,8 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
                 return;
             }
             if (parseInt(element.ariaValueNow) > parseInt(element.ariaValueMax)) {
-                element.classList.add("no-transition");
-                element.classList.remove("progress-bar-transition");
+                //element.classList.add("no-transition");
+                //element.classList.remove("progress-bar-transition");
                 element.ariaValueNow = 0;
                 element.style.width = "0%";
 
@@ -599,9 +598,49 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             }
         });
 
+        //character modal attack bars
+        var demoBars = document.getElementsByClassName("demo-ability-bar");
+        Array.from(demoBars).forEach((element) => {
+            //element.classList.remove("no-transition");
+            //element.classList.add("progress-bar-transition");
+            
+            if (parseInt(element.ariaValueNow) > parseInt(element.ariaValueMax)) {
+                //element.classList.add("no-transition");
+                //element.classList.remove("progress-bar-transition");
+                element.ariaValueNow = element.ariaValueMax;
+                element.style.width = "100%";
+
+                return;
+            }
+
+            element.ariaValueNow = parseInt(element.ariaValueNow) + toAdd;
+
+            var progress = parseInt(element.ariaValueNow) / parseInt(element.ariaValueMax);
+            element.style.width = progress * 100 + "%";
+        });
+
         var stop = window.performance.now();
-        $scope.performance.timePerTick = (stop - start).toFixed(0);
+        $scope.performance.timePerTick = (stop - start).toFixed(2);
     };
+
+    $scope.triggerDemoAttack = function triggerDemoAttack(element) {
+        var abilityElements = document.getElementsByClassName('demo-ability-bar');
+        var abilityLog = document.getElementById('taCharacterModalAbilityLog');
+
+        if (parseInt(abilityElements[0].ariaValueNow) >= parseInt(abilityElements[0].ariaValueMax)) {
+            abilityElements[0].ariaValueNow = 0;
+            abilityLog.value = document.getElementById('lblCharacterModalAbility1').innerText + '\r\n' +  abilityLog.value;
+        } else if (parseInt(abilityElements[1].ariaValueNow) >= parseInt(abilityElements[1].ariaValueMax)) {
+            abilityElements[1].ariaValueNow = 0;
+            abilityLog.value = document.getElementById('lblCharacterModalAbility2').innerText + '\r\n' +  abilityLog.value;
+        } else if (parseInt(abilityElements[2].ariaValueNow) >= parseInt(abilityElements[2].ariaValueMax)) { 
+            abilityElements[2].ariaValueNow = 0;
+            abilityLog.value = document.getElementById('lblCharacterModalAbility3').innerText + '\r\n' +  abilityLog.value;
+        } else {
+            abilityLog.value = 'Basic Attack \r\n' +  abilityLog.value;
+        }
+        
+    }
     
     $('#characterModal').on('show.bs.modal', function (event) {
         var triggeredBy = $(event.relatedTarget);
@@ -621,6 +660,16 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         modal.find('#lblCharacterModalAgility')[0].innerText =  char.agility;
         modal.find('#lblCharacterModalIntelligence')[0].innerText =  char.intelligence;
         modal.find('#lblCharacterModalConstitution')[0].innerText =  char.constitution;
+
+        //ability demo
+        modal.find('#progressCharacterModalAttack')[0].ariaValueMax = char.attackSpeed
+
+        modal.find('#lblCharacterModalAbility1')[0].innerText = char.activeAbilities[0].name;
+        modal.find('#progressCharacterModalAbility1')[0].ariaValueMax = char.activeAbilities[0].cooldown;
+        modal.find('#lblCharacterModalAbility2')[0].innerText = char.activeAbilities[1].name;
+        modal.find('#progressCharacterModalAbility2')[0].ariaValueMax = char.activeAbilities[1].cooldown;
+        modal.find('#lblCharacterModalAbility3')[0].innerText = char.activeAbilities[2].name;
+        modal.find('#progressCharacterModalAbility3')[0].ariaValueMax = char.activeAbilities[2].cooldown;
         
     })
 
