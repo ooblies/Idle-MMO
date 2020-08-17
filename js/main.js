@@ -6,27 +6,30 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     $scope.performance.timeSinceSave = 0;
     $scope.data = {};
     $scope.createCharacter = {};    
+    $scope.$interval = $interval;
 
     $scope.saveGame = function saveGame() {
-        var saveString = JSON.stringify($scope.data);
-        localStorage.setItem('idleMMOSave',saveString);
+        //var saveString = JSON.stringify($scope.data);
+        //localStorage.setItem('idleMMOSave',saveString);
+        localStorage.removeItem('idleMMOSave');
     };
     $scope.loadGame = function loadGame() {
-        var saveString = localStorage.getItem("idleMMOSave");
-        if (saveString && saveString != "{}") {
-            var saveObject = JSON.parse(saveString);
-            $scope.data = saveObject;
-            
-            var chars = [];
-            saveObject.characters.forEach(char => {
-                chars.push(Character.createFromSave(char));
-            })
-            
-            $scope.data.characters = chars;
+        //var saveString = localStorage.getItem("idleMMOSave");
+        //if (saveString && saveString != "{}") {
+        //    var saveObject = JSON.parse(saveString);
+        //    $scope.data = saveObject;
+        //    
+        //    var chars = [];
+        //    saveObject.characters.forEach(char => {
+        //        chars.push(Character.createFromSave(char));
+        //    })
+        //    
+        //    $scope.data.characters = chars;
 
-        } else {
+        //} else {
+            localStorage.removeItem('idleMMOSave');
             $scope.startNewGame();
-        }        
+        //}        
     };
     $scope.deleteSave = function deleteSave() {
         localStorage.removeItem('idleMMOSave');
@@ -35,21 +38,149 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
     $scope.startNewGame = function startNewGame() {
         $scope.data = {};
         $scope.data.gold = 0;
-        $scope.data.characters = [];
+        $scope.data.characters = [];        
         $scope.data.groups = [];
         $scope.data.dungeon = {};
-        $scope.data.dungeon.maxFloor = 10;
+        $scope.data.dungeon.maxFloor = 1;
         $scope.data.dungeon.floors = [];
+        $scope.abilityPromises = [];
+        $scope.characterBuffs = [];
 
         //temp characters
         $scope.createCharacterObject(1,'Ooblies',CONSTANTS.classes.Warrior);        
         $scope.createCharacterObject(2,'Rohnjudes',CONSTANTS.classes.Mage);
-        $scope.createGroupObject(1,'TestGroup',$scope.data.characters[0].id, $scope.data.characters[1].id);
+        $scope.createCharacterObject(3,'HealBot', CONSTANTS.classes.Cleric);
+        $scope.createGroupObject(1,'TestGroup',$scope.data.characters[0].id);
 
         $scope.data.sharedInventory = [];
         
         $scope.generateDungeonEnemies();        
     };
+
+    $scope.cancelFloorPromises = function cancelFloorPromsies(floorIndex) {
+        $scope.abilityPromises.forEach(p => {
+            if (p.floorIndex == floorIndex) {
+                $interval.cancel(p.promise);
+            }
+        });
+
+        $scope.abilityPromises = $scope.abilityPromises.filter(p => {
+            return p.floorIndex != floorIndex;
+        });
+    }
+
+    $scope.cancelCharacterPromises = function cancelCharacterPromises(characterId) {
+        $scope.abilityPromises.forEach(p => {
+            if (p.characterId == characterId) {
+                $interval.cancel(p.promise);
+            }
+        });
+
+        $scope.abilityPromises = $scope.abilityPromises.filter(p => {
+            return p.characterId != characterId;
+        });
+    }
+
+    $scope.cancelEnemyPromises = function cancelEnemyPromises(floorIndex, enemyIndex) {
+        $scope.abilityPromises.forEach(p => {
+            if (p.floorIndex == floorIndex && p.enemyIndex == enemyIndex) {
+                $interval.cancel(p.promise);
+            }
+        });
+
+        $scope.abilityPromises = $scope.abilityPromises.filter(p => {
+            return (p.floorIndex != floorIndex) || (p.floorIndex == floorIndex && p.enemyIndex != enemyIndex);
+        });
+    }
+
+    $scope.getCharacterIdFromIndex = function getCharacterIdFromIndex(floorIndex, characterIndex){
+        return $scope.data.dungeon.floors[floorIndex].group.characterIds[characterIndex];
+    }
+
+    $scope.applyOrUpdateBuff = function applyOrUpdateBuff(charId, ability) {
+        //check if buff exists
+        var buffExists = false;
+        $scope.characterBuffs.forEach(b => {
+            if (b.characterId == charId && b.ability.name == ability.name) {
+                buffExists = true;
+                b.expiresOn = window.performance.now() + b.ability.effectDuration;
+            }
+        });
+        
+        if (!buffExists) {
+            $scope.characterBuffs.push({
+                characterId: charId,
+                ability: ability,
+                expiresOn: window.performance.now() + ability.effectDuration,
+            });                
+        }
+
+        $scope.characterBuffs = $scope.characterBuffs.filter(b => {
+            return b.expiresOn > window.performance.now();
+        });
+    }
+
+    $scope.getStatIncreaseFromBuffs = function getStatIncreaseFromBuffs(stat, characterId) {
+        var increase = 0;
+        $scope.characterBuffs.forEach(b => {
+            //if right character
+            //right stat
+            //not expired
+            if (b.characterId == characterId) {
+                if (b.ability.effectStat == stat) {
+                    if(b.expiresOn >= window.performance.now()) {
+                        increase += b.ability.effectStatIncreaseAmount;
+                    }
+                }
+            }
+        });
+        return increase;
+    }
+
+    $scope.getBlockFlatFromBuffs = function getBlockFlatFromBuffs(characterId) {
+        var blocked = 0;
+        $scope.characterBuffs.forEach(b => {
+            if (b.characterId == characterId) {
+                if (b.ability.blockFlat > 0) {
+                    if (b.expiresOn >= window.performance.now()) {
+                        blocked += b.ability.blockFlat;
+                    }
+                }
+            }
+        });
+        return blocked;
+    }
+    
+    $scope.getBlockPercentFromBuffs = function getBlockPercentFromBuffs(characterId) {        
+        var blockedP = 0;
+        $scope.characterBuffs.forEach(b => {
+            if (b.characterId == characterId) {
+                if (b.ability.blockPercent > 0) {
+                    if (b.expiresOn >= window.performance.now()) {
+                        blockedP += b.ability.blockPercent;
+                    }
+                }
+            }
+        });
+        return blockedP;
+    }
+
+    $scope.getStatMultiplierFromBuffs = function getStatIncreaseFromBuffs(stat, characterId) {        
+        var multiplier = 1;
+        $scope.characterBuffs.forEach(b => {
+            //if right character
+            //right stat
+            //not expired
+            if (b.characterId == characterId) {
+                if (b.ability.effectStat == stat) {
+                    if(b.expiresOn >= window.performance.now()) {
+                        multiplier *= b.ability.effectStatIncreaseMultiplier;
+                    }
+                }
+            }
+        });
+        return multiplier;
+    }
 
     $scope.popover = function() {
         $("[data-toggle=popover]").popover();
@@ -87,6 +218,10 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         if (!$scope.data.dungeon.floors[0].group && !$scope.data.dungeon.floors[0].resetting) {
             $scope.data.dungeon.floors[0].group = group;
         }
+
+        group.characterIds.forEach(cId => {
+            $scope.getCharacterById(cId).currentFloor = 1;
+        });
     };
 
     $scope.getGroupById = function(groupId) {
@@ -125,8 +260,12 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             });
 
             if (targetCharId == -1) {
-                //everyone's  dead                
+                //everyone's  dead       
+                $scope.cancelFloorPromises(floorIndex);         
                 $scope.data.dungeon.floors[floorIndex].group = null;
+                group.characterIds.forEach(cId => {
+                    $scope.getCharacterById(cId).currentFloor = null;
+                })
                 
                 $('#floor' + floorIndex + 'bar')[0].classList.add('progress-bar-increasing');
                 $scope.data.dungeon.floors[floorIndex].resetting = true;
@@ -135,9 +274,13 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             }
 
             var char = $scope.getCharacterById(targetCharId);
-            char.adjustHealth(-attackDamage);
+            char.adjustHealthWithDR(-attackDamage);
+            if (char.currentHealth <= 0) {
+                $scope.cancelCharacterPromises(char.id);
+                console.log(char.name + ' dies.');
+            }
                                               
-            console.log(enemyName + ' ' + attackName + 's ' + char.name + ' for ' + attackDamage + ' damage.');
+            //console.log(enemyName + ' ' + attackName + 's ' + char.name + ' for ' + attackDamage + ' damage.');
         }
         
         var enemyObject = $scope.data.dungeon.floors[floorIndex].enemyWaves[0][enemyIndex];
@@ -369,92 +512,8 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
     $scope.attack = function attack(character) {
         var char = $scope.getCharacterById(character.getAttribute('character-id'));  
-        var floorIndex = parseInt(character.getAttribute('floor-index'));
-        var floor = $scope.data.dungeon.floors[floorIndex];
 
-        var effectiveDamage = char.attackDamage;
-
-        //first enemy
-        var currentEnemyIndex = -1;
-        
-        floor.enemyWaves[0].forEach(function(e, i) {
-            if (e.currentHealth > 0 && currentEnemyIndex == -1) {
-                currentEnemyIndex = i;
-            }
-        });
-
-        if (currentEnemyIndex == -1) {
-            //no more enemies
-        } else {
-            var currentEnemy = floor.enemyWaves[0][currentEnemyIndex];
-
-            currentEnemy.currentHealth -= effectiveDamage;
-
-            if (currentEnemy.currentHealth <= 0) {
-                //kill enemy
-                var group = $scope.data.dungeon.floors[floorIndex].group;
-
-                //$scope.data.dungeon.floors[floorIndex].enemyWaves[0].splice(enemyIndex,1);
-                console.log(currentEnemy.name + ' dies.');
-
-                //give enemy.level xp to all characters
-                $scope.data.dungeon.floors[floorIndex].group.characterIds.forEach(c => {
-                    var floorChar = $scope.getCharacterById(c);                    
-                    if (floorChar.currentHealth > 0) {
-                        floorChar.gainExperience(currentEnemy.level);                
-                    }
-                });
-
-                $scope.lootItemsFromEnemy(currentEnemy);
-                $scope.lootGoldFromEnemy(currentEnemy);
-
-                //if no enemies left in wave - remove wave
-                if ($scope.getNumberOfLivingEnemiesInFloorWave(floorIndex) == 0) {
-                    $scope.data.dungeon.floors[floorIndex].enemyWaves.shift();
-
-                    //reset character attack bars
-                    $scope.resetCharacterAttacksByFloor(floorIndex);
-
-                    //if no waves left
-                    if ($scope.data.dungeon.floors[floorIndex].enemyWaves.length == 0) {
-                        //if characters alive
-                        if ($scope.data.dungeon.floors[floorIndex].group) {
-                            //if at max floor
-                            if (!CONSTANTS.dungeonFloors[floorIndex + 1]) {
-                                $scope.data.dungeon.floors[floorIndex].group = null;
-                                $scope.data.dungeon.floors[floorIndex].resetting = true;
-
-                                //start floor bar to regen mobs
-                                $('#floor'+floorIndex+'bar')[0].classList.add('progress-bar-increasing');
-
-                                return;
-                            }
-                            //add new floor if necessary
-                            if ($scope.data.dungeon.maxFloor == floorIndex + 1) {
-                                $scope.data.dungeon.maxFloor++;
-                                
-                                $scope.data.dungeon.floors.push({
-                                    enemyWaves: $scope.generateEnemiesByFloor(floorIndex + 1),
-                                });
-                            }
-                            //move characters up a floor                
-                            $scope.data.dungeon.floors[floorIndex+1].group = group;
-                            $scope.data.dungeon.floors[floorIndex].group = null;
-
-                            group.characterIds.forEach(c => {
-                                var increaseChar = $scope.getCharacterById(c);
-                                increaseChar.maxFloor = floorIndex + 2;
-                            });
-                        }
-
-                        //start floor bar to regen mobs
-                        $('#floor'+floorIndex+'bar')[0].classList.add('progress-bar-increasing');
-                        $scope.data.dungeon.floors[floorIndex].resteting = true;
-                    }            
-                }
-            }
-            console.log(char.name + ' hits ' + currentEnemy.name + ' for ' + effectiveDamage + ' damage.');
-        }            
+        char.attack();              
     };
 
     $scope.lootItemsFromEnemy = function lootItemsFromEnemy(enemy) {
@@ -598,15 +657,26 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
             }
         });
 
+        var abilityBars = document.getElementsByClassName("ability-bar");
+        Array.from(abilityBars).forEach((element) => {
+            if (parseInt(element.ariaValueNow) > parseInt(element.ariaValueMax)) {
+                element.ariaValueNow = element.ariaValueMax;
+                element.style.width = "100%";
+
+                return;
+            }
+
+            element.ariaValueNow = parseInt(element.ariaValueNow) + toAdd;
+
+            var progress = parseInt(element.ariaValueNow) / parseInt(element.ariaValueMax);
+            element.style.width = progress * 100 + "%";
+        });
+
         //character modal attack bars
         var demoBars = document.getElementsByClassName("demo-ability-bar");
         Array.from(demoBars).forEach((element) => {
-            //element.classList.remove("no-transition");
-            //element.classList.add("progress-bar-transition");
             
             if (parseInt(element.ariaValueNow) > parseInt(element.ariaValueMax)) {
-                //element.classList.add("no-transition");
-                //element.classList.remove("progress-bar-transition");
                 element.ariaValueNow = element.ariaValueMax;
                 element.style.width = "100%";
 
@@ -627,15 +697,16 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         var abilityElements = document.getElementsByClassName('demo-ability-bar');
         var abilityLog = document.getElementById('taCharacterModalAbilityLog');
 
-        if (parseInt(abilityElements[0].ariaValueNow) >= parseInt(abilityElements[0].ariaValueMax)) {
+        //if ability is selected
+        if (parseInt(abilityElements[0].ariaValueNow) >= parseInt(abilityElements[0].ariaValueMax) && document.getElementById('selCharacterModalAbility1').selectedIndex > 0) {
             abilityElements[0].ariaValueNow = 0;
-            abilityLog.value = document.getElementById('lblCharacterModalAbility1').innerText + '\r\n' +  abilityLog.value;
-        } else if (parseInt(abilityElements[1].ariaValueNow) >= parseInt(abilityElements[1].ariaValueMax)) {
+            abilityLog.value = document.getElementById('selCharacterModalAbility1').value + '\r\n' +  abilityLog.value;
+        } else if (parseInt(abilityElements[1].ariaValueNow) >= parseInt(abilityElements[1].ariaValueMax) && document.getElementById('selCharacterModalAbility2').selectedIndex > 0) {
             abilityElements[1].ariaValueNow = 0;
-            abilityLog.value = document.getElementById('lblCharacterModalAbility2').innerText + '\r\n' +  abilityLog.value;
-        } else if (parseInt(abilityElements[2].ariaValueNow) >= parseInt(abilityElements[2].ariaValueMax)) { 
+            abilityLog.value = document.getElementById('selCharacterModalAbility2').value + '\r\n' +  abilityLog.value;
+        } else if (parseInt(abilityElements[2].ariaValueNow) >= parseInt(abilityElements[2].ariaValueMax) && document.getElementById('selCharacterModalAbility3').selectedIndex > 0) { 
             abilityElements[2].ariaValueNow = 0;
-            abilityLog.value = document.getElementById('lblCharacterModalAbility3').innerText + '\r\n' +  abilityLog.value;
+            abilityLog.value = document.getElementById('selCharacterModalAbility3').value + '\r\n' +  abilityLog.value;
         } else {
             abilityLog.value = 'Basic Attack \r\n' +  abilityLog.value;
         }
@@ -649,6 +720,9 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
 
         var modal = $(this);
         modal.find('.modal-title').text(char.name);
+        modal.find('#lblCharacterModalId').text(charId);
+        modal.find('#taCharacterModalAbilityLog')[0].value = "";
+
         modal.find('#lblCharacterModalClass')[0].innerText = char.class.name;
         modal.find('#lblCharacterModalHealth')[0].innerText = char.maxHealth;
         modal.find('#lblCharacterModalLevel')[0].innerText = char.level;
@@ -662,16 +736,164 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         modal.find('#lblCharacterModalConstitution')[0].innerText =  char.constitution;
 
         //ability demo
-        modal.find('#progressCharacterModalAttack')[0].ariaValueMax = char.attackSpeed
+        modal.find('#progressCharacterModalAttack')[0].ariaValueNow = 0;
+        modal.find('#progressCharacterModalAttack')[0].ariaValueMax = char.attackSpeed;
+        var div1 = modal.find('#divAbility1')[0];
+        var div2 = modal.find('#divAbility2')[0];
+        var div3 = modal.find('#divAbility3')[0];
 
-        modal.find('#lblCharacterModalAbility1')[0].innerText = char.activeAbilities[0].name;
-        modal.find('#progressCharacterModalAbility1')[0].ariaValueMax = char.activeAbilities[0].cooldown;
-        modal.find('#lblCharacterModalAbility2')[0].innerText = char.activeAbilities[1].name;
-        modal.find('#progressCharacterModalAbility2')[0].ariaValueMax = char.activeAbilities[1].cooldown;
-        modal.find('#lblCharacterModalAbility3')[0].innerText = char.activeAbilities[2].name;
-        modal.find('#progressCharacterModalAbility3')[0].ariaValueMax = char.activeAbilities[2].cooldown;
+        //ability 1
         
+        if (char.activeAbilities[0]) {            
+            div1.classList.remove('hidden');       
+        
+            modal.find('#progressCharacterModalAbility1')[0].ariaValueNow = 0;
+            modal.find('#progressCharacterModalAbility1')[0].ariaValueMax = char.activeAbilities[0].cooldown;            
+        } else {
+            div1.classList.add('hidden');
+        }
+        if (char.activeAbilities[1]) {
+            div2.classList.remove('hidden');        
+        
+
+            modal.find('#progressCharacterModalAbility2')[0].ariaValueNow = 0;
+            modal.find('#progressCharacterModalAbility2')[0].ariaValueMax = char.activeAbilities[1].cooldown;            
+        } else {
+            div2.classList.add('hidden');           
+        }
+        if (char.activeAbilities[2]) {
+            div3.classList.remove('hidden');             
+
+            modal.find('#progressCharacterModalAbility3')[0].ariaValueNow = 0;
+            modal.find('#progressCharacterModalAbility3')[0].ariaValueMax = char.activeAbilities[2].cooldown;
+        }   else {
+            div3.classList.add('hidden');           
+        }
+
+        var selAbility1 = modal.find('#selCharacterModalAbility1')[0];
+        while (selAbility1.options.length > 0) {
+            selAbility1.remove(0);
+        }
+        var baseOption = document.createElement("option");
+        baseOption.text = "Choose an ability...";
+        baseOption.value = "";
+        baseOption.selected = true;
+        selAbility1.add(baseOption);
+        char.class.abilities.forEach(a => {
+            var option = document.createElement("option");
+            option.text = a.name;
+            option.value = a.name;
+            if (char.activeAbilities[0] && char.activeAbilities[0].name == a.name) {
+                option.selected = true;
+            }
+            selAbility1.add(option);                
+        });     
+        
+
+        var selAbility2 = modal.find('#selCharacterModalAbility2')[0];
+        while (selAbility2.options.length > 0) {
+            selAbility2.remove(0);
+        }
+        var baseOption = document.createElement("option");
+        baseOption.text = "Choose an ability...";
+        baseOption.value = "";
+        baseOption.selected = true;
+        selAbility2.add(baseOption);
+        char.class.abilities.forEach(a => {
+            var option = document.createElement("option");
+            option.text = a.name;
+            option.value = a.name;
+            if (char.activeAbilities[1] && char.activeAbilities[1].name == a.name) {
+                option.selected = true;
+            }
+            selAbility2.add(option);                
+        });     
+
+
+
+        var selAbility3 = modal.find('#selCharacterModalAbility3')[0];
+        while (selAbility3.options.length > 0) {
+            selAbility3.remove(0);
+        }
+        var baseOption = document.createElement("option");
+        baseOption.text = "Choose an ability...";
+        baseOption.value = "";
+        baseOption.selected = true;
+        selAbility3.add(baseOption);
+        char.class.abilities.forEach(a => {
+            var option = document.createElement("option");
+            option.text = a.name;
+            option.value = a.name;
+            if (char.activeAbilities[2] && char.activeAbilities[2].name == a.name) {
+                option.selected = true;
+            }
+            selAbility3.add(option);                
+        });            
+    
     })
+
+    $('#selCharacterModalAbility1').on('change', function (event) {                
+        
+        var charId = document.getElementById("lblCharacterModalId").innerText;
+
+        //show/hide bar
+        var div1 = document.getElementById('divAbility1');
+        if (event.currentTarget.value != "") {            
+            div1.classList.remove('hidden');    
+                        
+            var char = $scope.getCharacterById(charId);
+            //set char.activeAbility
+            char.setActiveAbilityByName(0, event.currentTarget.value);
+            //set ariavaluemax            
+            //reset ariaValueNow
+            document.getElementById('progressCharacterModalAbility1').ariaValueMax = char.ability1Cooldown;
+            document.getElementById('progressCharacterModalAbility1').ariaValueNow = 0;
+        } else {
+            div1.classList.add('hidden');
+        }        
+    });
+
+    $('#selCharacterModalAbility2').on('change', function (event) {                
+        
+        var charId = document.getElementById("lblCharacterModalId").innerText;
+
+        //show/hide bar
+        var div2 = document.getElementById('divAbility2');
+        if (event.currentTarget.value != "") {            
+            div2.classList.remove('hidden');    
+                        
+            var char = $scope.getCharacterById(charId);
+            //set char.activeAbility
+            char.setActiveAbilityByName(1, event.currentTarget.value);
+            //set ariavaluemax            
+            //reset ariaValueNow
+            document.getElementById('progressCharacterModalAbility2').ariaValueMax = char.ability2Cooldown;
+            document.getElementById('progressCharacterModalAbility2').ariaValueNow = 0;
+        } else {
+            div2.classList.add('hidden');
+        }        
+    });
+
+    $('#selCharacterModalAbility3').on('change', function (event) {                
+        
+        var charId = document.getElementById("lblCharacterModalId").innerText;
+
+        //show/hide bar
+        var div3 = document.getElementById('divAbility3');
+        if (event.currentTarget.value != "") {            
+            div3.classList.remove('hidden');    
+                        
+            var char = $scope.getCharacterById(charId);
+            //set char.activeAbility
+            char.setActiveAbilityByName(2, event.currentTarget.value);
+            //set ariavaluemax            
+            //reset ariaValueNow
+            document.getElementById('progressCharacterModalAbility3').ariaValueMax = char.ability3Cooldown;
+            document.getElementById('progressCharacterModalAbility3').ariaValueNow = 0;
+        } else {
+            div3.classList.add('hidden');
+        }        
+    });
 
     $('#createGroupModal').on('show.bs.modal', function (event) {
         

@@ -52,10 +52,10 @@
                     <ul class="collapse show list-unstyled list-group-scroll nav sidebar-nav" id="myTab" role="tablist">
 
                         <li class="animate-repeat sidebar-sub-item">
-                            <a class="active" id="town-tab" data-toggle="tab" href="#town" role="tab" aria-controls="town" aria-selected="true"><i class="fas fa-home"></i> Town</a>
+                            <a class="" id="town-tab" data-toggle="tab" href="#town" role="tab" aria-controls="town" aria-selected="true"><i class="fas fa-home"></i> Town</a>
                         </li>
                         <li class="animate-repeat sidebar-sub-item">
-                            <a class="" id="dungeon-tab" data-toggle="tab" href="#dungeon" role="tab" aria-controls="dungeon" aria-selected="false"><i class="fas fa-dungeon"></i> Dungeon</a>
+                            <a class="active" id="dungeon-tab" data-toggle="tab" href="#dungeon" role="tab" aria-controls="dungeon" aria-selected="false"><i class="fas fa-dungeon"></i> Dungeon</a>
                         </li>
 
                         <a href="#characterSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-sub-item">
@@ -79,7 +79,7 @@
                         <a href="#groupSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle sidebar-sub-item">
                             <i class="fas fa-users"></i> Groups
                         </a>
-                        <ul class="collapse list-unstyled list-group-scroll" id="groupSubmenu">
+                        <ul class="collapse show list-unstyled list-group-scroll" id="groupSubmenu">
                             <li class="animate-repeat" ng-repeat="group in data.groups">                                                        
                                 <div class="d-flex sidebar-sub-sub-item" >
                                     <div class="mr-auto clickable" data-toggle="modal" data-target="#createGroupModal" data-group-id="{{group.id}}">
@@ -114,7 +114,7 @@
                         <a href="#adminSubmenu" data-toggle="collapse" aria-expanded="false"  class="dropdown-toggle sidebar-sub-item">
                             <i class="fas fa-cogs"></i> Admin
                         </a>
-                        <ul class="collapse list-unstyled list-group-scroll" id="adminSubmenu">
+                        <ul class="collapse show list-unstyled list-group-scroll" id="adminSubmenu">
                             <li class="animate-repeat">
                                 <div class="sidebar-sub-sub-item">                                
                                     <a href="" ng-click="saveGame()"><i class="fas fa-save"></i>Save Game</a>
@@ -151,10 +151,10 @@
         <div id="content" class="container-fluid">
             <div class="tab-content" id="v-pills-tabContent">                    
                 <div class="tab-content" id="myTabContent">
-                    <div class="tab-pane fade show active" id="town" role="tabpanel" aria-labelledby="town-tab">
+                    <div class="tab-pane fade" id="town" role="tabpanel" aria-labelledby="town-tab">
                         <h1>Town</h1>
                     </div>
-                    <div class="tab-pane fade" id="dungeon" role="tabpanel" aria-labelledby="dungeon-tab">
+                    <div class="tab-pane fade show active" id="dungeon" role="tabpanel" aria-labelledby="dungeon-tab">
                         <h1>Dungeon</h1>
     
                         <div class="d-inline-flex flex-column">
@@ -177,9 +177,9 @@
                                             <div ng-hide="character.currentHealth <= 0">
                                                 <!-- Attack -->
                                                 <div class=" progress" style="height: 2px; margin-top:2px;">
-                                                    <div id="character{{character.id}}attack" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar progress-bar-increasing attack-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{character.attackSpeed}}" onsubmit="ngFire( 'attack',this)"></div>
+                                                    <div id="character{{character.id}}attack" character-id="{{character.id}}" floor-index="{{$parent.$index}}" class="progress-bar progress-bar-increasing attack-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{character.attackSpeed}}" onsubmit="ngFire( 'attack',this)"></div>
                                                 </div>
-        
+
                                                 <!-- Experience -->
                                                 <div class=" progress" style="height: 2px; margin-top:2px;">
                                                     <div id="character{{character.id}}experience" floor-index="{{$parent.$index}}" character-id="{{character.id}}" class="progress-bar xp-bar" role="progressbar" aria-valuenow="{{character.experience}}" aria-valuemin="{{character.experienceMin}}"
@@ -234,38 +234,62 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="characterModalLabel">Character</h5>
+          <h5 class="hidden" id="lblCharacterModalId"></h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
             <div class="row">
+                <!-- EQUIPMENT -->
                 <div class="col-sm-6">        
                     <img src="images/characterEquipment.png" />
                 </div>
+
+                <!-- ABILITIES -->
                 <div class="col-sm-6">
-                    Ability Priority
+                    Auto Attack
                     <div class="progress" style="height: 2px; margin-top:2px;">
                         <div id="progressCharacterModalAttack" class="progress-bar progress-bar-increasing" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10000" onsubmit="ngFire( 'triggerDemoAttack',this)"></div>
                     </div>
-                    <label id="lblCharacterModalAbility1"></label>
-                    <div class="progress" style="height: 2px; margin-top:2px;">
-                        <div id="progressCharacterModalAbility1" class="progress-bar demo-ability-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10000"></div>
+                    <br/>
+                                                            
+                        <select class="custom-select" id="selCharacterModalAbility1" required>
+                            <option selected value="">Choose an ability...</option>                   
+                        </select>
+                        <br/>
+                    <div id="divAbility1">  
+                        <div class="progress" style="height: 2px; margin-top:2px;">
+                            <div id="progressCharacterModalAbility1" class="progress-bar demo-ability-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10000"></div>
+                        </div>                        
                     </div>
-                    <label id="lblCharacterModalAbility2"></label>
-                    <div class="progress" style="height: 2px; margin-top:2px;">
-                        <div id="progressCharacterModalAbility2" class="progress-bar demo-ability-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10000"></div>
+                    <br/>
+                    <select class="custom-select" id="selCharacterModalAbility2" required>
+                        <option selected value="">Choose an ability...</option>                   
+                    </select>
+                    <br/>
+                    <div id="divAbility2">                                    
+                        <div class="progress" style="height: 2px; margin-top:2px;">
+                            <div id="progressCharacterModalAbility2" class="progress-bar demo-ability-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10000"></div>
+                        </div>                        
                     </div>
-                    <label id="lblCharacterModalAbility3"></label>
-                    <div class="progress" style="height: 2px; margin-top:2px;">
-                        <div id="progressCharacterModalAbility3" class="progress-bar demo-ability-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10000"></div>
+                    <br/>
+                        <select class="custom-select" id="selCharacterModalAbility3" required>
+                            <option selected value="">Choose an ability...</option>                   
+                        </select>
+                        <br/>
+                    <div id="divAbility3">                        
+                    
+                        <div class="progress" style="height: 2px; margin-top:2px;">
+                            <div id="progressCharacterModalAbility3" class="progress-bar demo-ability-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10000"></div>
+                        </div>                        
                     </div>
-                    Auto Attack
-                    <hr>
+                    <br/>
                     <textarea style="width:350px; height:150px;" id="taCharacterModalAbilityLog"></textarea>
                 </div>
             </div>
             <hr>
+            <!-- STATS -->
             <div class="row">
                 <span class="col-sm-2"></span>
                 <div class="col-sm-2 strength">
@@ -283,44 +307,45 @@
                 <span class="col-sm-2"></span>
             </div>
             <hr>
-          <dl class="row">
-            <dt class="col-sm-3">
-                Class
-            </dt>
-            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
-                <label id="lblCharacterModalClass"></label>
-            </dd>
-            <dt class="col-sm-3">
-                Health
-            </dt>
-            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
-                <label id="lblCharacterModalHealth"></label>
-            </dd>
-            <dt class="col-sm-3">
-                Level
-            </dt>
-            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
-                <label id="lblCharacterModalLevel"></label>
-            </dd>
-            <dt class="col-sm-3">
-                Attack Speed
-            </dt>
-            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
-                <label id="lblCharacterModalAttackSpeed"></label>
-            </dd>
-            <dt class="col-sm-3">
-                Max Floor
-            </dt>
-            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
-                <label id="lblCharacterModalMaxFloor"></label>
-            </dd>
-            <dt class="col-sm-3">
-                Attack Damage
-            </dt>
-            <dd class="col-sm-3" style="margin-bottom: 0px !important;">
-                <label id="lblCharacterModalAttackDamage"></label>
-            </dd>
-          </dl>
+            <!-- COMBAT STATS -->
+            <dl class="row">
+                <dt class="col-sm-3">
+                    Class
+                </dt>
+                <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                    <label id="lblCharacterModalClass"></label>
+                </dd>
+                <dt class="col-sm-3">
+                    Health
+                </dt>
+                <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                    <label id="lblCharacterModalHealth"></label>
+                </dd>
+                <dt class="col-sm-3">
+                    Level
+                </dt>
+                <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                    <label id="lblCharacterModalLevel"></label>
+                </dd>
+                <dt class="col-sm-3">
+                    Attack Speed
+                </dt>
+                <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                    <label id="lblCharacterModalAttackSpeed"></label>
+                </dd>
+                <dt class="col-sm-3">
+                    Max Floor
+                </dt>
+                <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                    <label id="lblCharacterModalMaxFloor"></label>
+                </dd>
+                <dt class="col-sm-3">
+                    Attack Damage
+                </dt>
+                <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                    <label id="lblCharacterModalAttackDamage"></label>
+                </dd>
+            </dl>
         </div>
         <div class="modal-footer">
         </div>

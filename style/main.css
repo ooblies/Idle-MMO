@@ -1,3 +1,7 @@
+
+.hidden {
+    display: none;
+}
 .progress-bar {
     
     -webkit-transition: none !important;
@@ -16,6 +20,9 @@
 
 .sidebar-nav {
     display: block !important;
+}
+.ability-bar {
+    background-color:lightskyblue !important;
 }
 
 .strength {
