@@ -194,7 +194,7 @@
                                         <span class="ra ra-crossed-swords"></span>
                                     </div>
                                     <!-- ENEMY -->
-                                    <div class="p-2" style="width:100px" ng-repeat="enemy in data.dungeon.floors[$index].enemyWaves[0] track by $index">
+                                    <div class="p-2 clickable" style="width:100px" ng-repeat="enemy in data.dungeon.floors[$index].enemyWaves[0] track by $index" data-toggle="modal" data-target="#viewEnemyModal">
                                         {{enemy.name}}
                                         <!-- HP -->
                                         <div class="progress health-bar-container" style="height: 2px;">
@@ -471,6 +471,44 @@
                     </div>
                 </div>
             </form>
+        </div>
+        <div class="modal-footer">
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Enemy Modal -->
+  <div class="modal fade" id="viewEnemyModal" tabindex="-1" role="dialog" aria-labelledby="viewEnemyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewEnemyModalLabel">Enemy</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <dl class="row">
+                <dt class="col-sm-3">
+                    Class
+                </dt>
+                <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                    <label id="lblCharacterModalClass"></label>
+                </dd>
+                <dt class="col-sm-3">
+                    Health
+                </dt>
+                <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                    <label id="lblCharacterModalHealth"></label>
+                </dd>
+                <dt class="col-sm-3">
+                    Level
+                </dt>
+                <dd class="col-sm-3" style="margin-bottom: 0px !important;">
+                    <label id="lblCharacterModalLevel"></label>
+                </dd>
+            </dl>
         </div>
         <div class="modal-footer">
 

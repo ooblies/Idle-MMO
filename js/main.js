@@ -712,6 +712,15 @@ idleApp.controller('idleController', function idleController($scope, $timeout, $
         }
         
     }
+
+    $('#enemyModal').on('show.bs.modal', function (event) {
+        var triggeredBy = $(event.relatedTarget);
+        var enemyId = triggeredBy.data('enemy-id');
+        var enemy = $scope.CONSTANTS.enemies[enemyId];
+        
+        var modal = $(this);
+        modal.find('.modal-title').text(enemy.name);
+    });
     
     $('#characterModal').on('show.bs.modal', function (event) {
         var triggeredBy = $(event.relatedTarget);

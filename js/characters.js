@@ -84,6 +84,7 @@ class Character {
     get constitution() {
         var conBase = this._getEffectiveStat(Stats.Constitution);
         var conFlat = this._scope.getStatIncreaseFromBuffs(Stats.Constitution, this.id);
+        //
         var conMultiplier = this._scope.getStatMultiplierFromBuffs(Stats.Constitution, this.id);;
 
         var conTotal = (conBase + conFlat) * conMultiplier;
